@@ -27,6 +27,10 @@ convert this code to those formats.
 #include <gl\gl.h>			// Header File For The OpenGL32 Library
 #include <gl\glu.h>			// Header File For The GLu32 Library
 
+
+#include <stdio.h>
+#include <strsafe.h>
+
 // This is the lazy adding libraries via #pragma rather than in linker includes
 // If you are not on visual studio you will need to add the librarys via your linker
 #pragma comment(lib,"ComCtl32.lib")
@@ -54,10 +58,31 @@ typedef struct
 } PTPData;
 
 int ReadFromFile();
-int DrawBackGround();
+int DrawBackGround(BOOL draw, GLfloat MaxLimit);
+int DrawAxis(BOOL draw, GLfloat MaxLimit);
+void ReadPTPDataFromPTPFile(TCHAR* FileName);
+void ReadFilePTP(TCHAR* FileName);
 
-PTPData	 ListOfPTPData[] = { 0 };
+
+PTPData	 ListOfPTPData[6000] = { 0 };
 int numLines = 0;
+GLfloat ProfileDistance = 1.0f;
+
+BOOL DisplayProfil_1 = 1;
+BOOL DisplayProfil_2 = 1;
+BOOL DisplayProfil_3 = 1;
+BOOL DisplayProfil_4 = 1;
+BOOL DisplayProfil_5 = 1;
+BOOL DisplayProfil_6 = 1;
+BOOL DisplayProfil_7 = 1;
+BOOL DisplayProfil_8 = 1;
+BOOL DisplayProfil_9 = 1;
+BOOL DisplayProfil_10 = 1;
+BOOL DisplayProfil_11 = 1;
+BOOL DisplayProfil_12 = 1;
+BOOL DisplayProfil_13 = 1;
+BOOL DisplayProfil_14 = 1;
+BOOL DisplayProfil_15 = 1;
 
 /***************************************************************************
 APP SPECIFIC INTERNAL CONSTANTS
@@ -67,11 +92,34 @@ APP SPECIFIC INTERNAL CONSTANTS
 ;{                   MAIN MENU COMMAND VALUE CONSTANTS			            }
 ;{-------------------------------------------------------------------------*/
 #define IDC_BMPLOAD 101									// App menu to load bitmap
+#define IDC_PTPLOAD 102									// App menu to load PTP File
 #define IDC_EXIT 105									// App menu command to exit application
 #define IDC_TIMERSTART 201								// App menu to start timer
 #define IDC_TIMERSTOP 202								// App menu to stop timer
 #define IDC_BUTTONPLUS 50								// Button Increment 
 #define IDC_BUTTONMINUS 51								// Button Decrement 
+#define IDC_PROFILEDISTANCE 52							// EDITBUTTON PROFILEDISTANCE 
+#define IDC_PROFILEDISTANCE_PLUS 53							// EDITBUTTON PROFILEDISTANCE Increse 
+#define IDC_PROFILEDISTANCE_MINUS 54							// EDITBUTTON PROFILEDISTANCE decrese
+#define BUF_SIZE 40				
+
+//------------Begin Read PTP File--------Open Dialog-------------
+#define BUFFERSIZE 528000
+DWORD g_BytesTransferred = 0;
+VOID CALLBACK FileIOCompletionRoutine(__in  DWORD dwErrorCode, __in  DWORD dwNumberOfBytesTransfered,	__in  LPOVERLAPPED lpOverlapped);
+
+VOID CALLBACK FileIOCompletionRoutine(__in  DWORD dwErrorCode, __in  DWORD dwNumberOfBytesTransfered,	__in  LPOVERLAPPED lpOverlapped)
+{
+	_tprintf(TEXT("Error code:\t%x\n"), dwErrorCode);
+	_tprintf(TEXT("Number of bytes:\t%x\n"), dwNumberOfBytesTransfered);
+	g_BytesTransferred = dwNumberOfBytesTransfered;
+}
+
+VOID CALLBACK readComplete(DWORD err, DWORD bytes, LPOVERLAPPED ovlp)
+{
+}
+//-------------End Read PTP File----------------------------------
+
 
 /*--------------------------------------------------------------------------}
 ;{                      APPLICATION STRING CONSTANTS			            }
@@ -232,99 +280,180 @@ it will be called from WM_PAINT messages to the window
 15Apr16 LdB
 --------------------------------------------------------------------------*/
 void DrawGLScene(GLDATABASE* db, HDC Dc) {
-	if ((db == 0) || (db->glTexture == 0)) return;					// Cant draw .. no render context
-	wglMakeCurrent(Dc, db->Rc);										// Make our render context current
+	//if ((db == 0) || (db->glTexture == 0)) return;					// Cant draw .. no render context
+	//wglMakeCurrent(Dc, db->Rc);										// Make our render context current
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);				// Clear The Screen And The Depth Buffer
 	glLoadIdentity();												// Reset The View
-	glTranslatef(0.0f, 0.0f, -5.0f);
+	glTranslatef(-5.0f, -5.0f, -15.0f);
 
 	glRotatef(db->xrot, 1.0f, 0.0f, 0.0f);
 	glRotatef(db->yrot, 0.0f, 1.0f, 0.0f);
 
-	glBindTexture(GL_TEXTURE_2D, db->glTexture);
+	//glBindTexture(GL_TEXTURE_2D, db->glTexture);
 
-	glBegin(GL_LINES);
-
+	DrawAxis(TRUE, 10.0f);
+	DrawBackGround(FALSE,2.0f);
+	
+	ReadFromFile();
+	//ProfileDistance = 0.2f;
 	GLfloat Tempi = 0.1f;
 	GLfloat Tempi1 = 0.1f;
 	for (int i = 0; i < numLines; i++)
 	{
-		//Profil 1
-		glColor3f(0.0f, 1.0f, 0.0f);
-		Tempi = ListOfPTPData[i].P1;
-		Tempi1 = ListOfPTPData[i + 1].P1;
+		if (DisplayProfil_1)
+		{
+			//Profil 1
+			glBegin(GL_LINES);
+			glColor3f(1.0f, 1.0f, 0.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P1, ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P1, ProfileDistance);
+			glEnd();
+		}
 
-		glVertex3f(ListOfPTPData[i].Time, Tempi, 1);
-		glVertex3f(ListOfPTPData[i + 1].Time, Tempi1, 1); // origin of the line
 
-														  //Profi	2
+		if (DisplayProfil_2)
+		{
+			//Profi	2
+			glBegin(GL_LINES);
+			glColor3f(1.0f, 1.0f, 0.4f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P2, 2 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P2, 2 * ProfileDistance);
+			glEnd();
+		}
 
-		Tempi = ListOfPTPData[i].P2 / 2;
-		Tempi1 = ListOfPTPData[i + 1].P2 / 2;
-		glColor3f(1.0f, 1.0f, 0.0f);
-		glVertex3f(ListOfPTPData[i].Time, Tempi, 2);
-		glVertex3f(ListOfPTPData[i + 1].Time, Tempi1, 2); // origin of the line
+		if (DisplayProfil_3)
+		{
+			//Profi	3
+			glBegin(GL_LINES);
+			glColor3f(1.0f, 0.7f, 0.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P3, 3 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P3, 3 * ProfileDistance);
+			glEnd();
+		}
 
-														  //Profi	3
-		Tempi = ListOfPTPData[i].P3 / 5;
-		Tempi1 = ListOfPTPData[i + 1].P3 / 5;
-		glColor3f(0.0f, 1.0f, 1.0f);
-		glVertex3f(ListOfPTPData[i].Time, Tempi, 3);
-		glVertex3f(ListOfPTPData[i + 1].Time, Tempi1, 3); // origin of the line
+		if (DisplayProfil_4)
+		{
+
+			//Profi	4
+			glBegin(GL_LINES);
+			glColor3f(1.0f, 1.0f, 0.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P4, 4 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P4, 4 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_5)
+		{
+			//Profi	5
+			glBegin(GL_LINES);
+			glColor3f(1.0f, 0.0f, 4.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P5, 5 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P5, 5 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_6)
+		{
+			//Profi	6
+			glBegin(GL_LINES);
+			glColor3f(1.0f, 0.0f, 7.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P6, 6 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P6, 6 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_7)
+		{
+			//Profi	7
+			glBegin(GL_LINES);
+			glColor3f(1.0f, 0.0f, 0.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P7, 7 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P7, 7 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_8)
+		{
+			//Profi	8
+			glBegin(GL_LINES);
+			glColor3f(0.0f, 0.0f, 0.4f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P8, 8 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P8, 8 * ProfileDistance);
+			glEnd();
+
+		}
+
+		if (DisplayProfil_9)
+		{
+			//Profi	9
+			glBegin(GL_LINES);
+			glColor3f(0.0f, 0.0f, 0.7f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P9, 9 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P9, 9 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_10)
+		{
+			//Profi	10
+			glBegin(GL_LINES);
+			glColor3f(0.0f, 0.0f, 1.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P10, 10 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P10, 10 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_11)
+		{
+			//Profi	11
+			glBegin(GL_LINES);
+			glColor3f(0.0f, 0.4f, 1.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P11, 11 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P11, 11 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_12)
+		{
+			//Profi	12
+			glBegin(GL_LINES);
+			glColor3f(0.0f, 0.7f, 1.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P12, 12 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P12, 12 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_13)
+		{
+			//Profi	13
+			glBegin(GL_LINES);
+			glColor3f(0.4f, 1.0f, 1.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P13, 13 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P13, 13 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_14)
+		{
+			//Profi	14
+			glBegin(GL_LINES);
+			glColor3f(0.7f, 1.0f, 1.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P14, 14 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P14, 14 * ProfileDistance);
+			glEnd();
+		}
+
+		if (DisplayProfil_15)
+		{
+			//Profi	15
+			glBegin(GL_LINES);
+			glColor3f(1.0f, 1.0f, 1.0f);
+			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P14, 15 * ProfileDistance);
+			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P14, 15 * ProfileDistance);
+			glEnd();
+		}
 	}
-	glEnd();
-
-	DrawBackGround();
-
-	//glBegin(GL_QUADS);
-	//// Front Face
-	//glNormal3f(0.0f, 0.0f, 1.0f);
-	//glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, 1.0f);
-	//glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0f, -1.0f, 1.0f);
-	//glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0f, 1.0f, 1.0f);
-	//glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, 1.0f, 1.0f);
-	//glEnd();
-
-	// Draw our texture cube to screen :-)
-	//glBegin(GL_QUADS);
-	//// Front Face
-	//glNormal3f(0.0f, 0.0f, 1.0f);
-	//glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, 1.0f);
-	//glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0f, -1.0f, 1.0f);
-	//glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0f, 1.0f, 1.0f);
-	//glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, 1.0f, 1.0f);
-	//// Back Face
-	//glNormal3f(0.0f, 0.0f, -1.0f);
-	//glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-	//glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, 1.0f, -1.0f);
-	//glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, 1.0f, -1.0f);
-	//glTexCoord2f(0.0f, 0.0f); glVertex3f(1.0f, -1.0f, -1.0f);
-	//// Top Face
-	//glNormal3f(0.0f, 1.0f, 0.0f);
-	//glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, 1.0f, -1.0f);
-	//glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, 1.0f, 1.0f);
-	//glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0f, 1.0f, 1.0f);
-	//glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0f, 1.0f, -1.0f);
-	//// Bottom Face
-	//glNormal3f(0.0f, -1.0f, 0.0f);
-	//glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-	//glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, -1.0f, -1.0f);
-	//glTexCoord2f(0.0f, 0.0f); glVertex3f(1.0f, -1.0f, 1.0f);
-	//glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, 1.0f);
-	//// Right face
-	//glNormal3f(1.0f, 0.0f, 0.0f);
-	//glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0f, -1.0f, -1.0f);
-	//glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0f, 1.0f, -1.0f);
-	//glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, 1.0f, 1.0f);
-	//glTexCoord2f(0.0f, 0.0f); glVertex3f(1.0f, -1.0f, 1.0f);
-	//// Left Face
-	//glNormal3f(-1.0f, 0.0f, 0.0f);
-	//glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-	//glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, 1.0f);
-	//glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, 1.0f, 1.0f);
-	//glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, 1.0f, -1.0f);
-	//glEnd();
 }
 
 
@@ -386,44 +515,88 @@ GLuint BMP2GLTexture(TCHAR* fileName, HWND Wnd, GLDATABASE* db) {
 	return (texture);												// Return the texture
 }
 
-int DrawBackGround()
+int DrawAxis(BOOL draw, GLfloat MaxLimit)
 {
+	if (draw)  //  activate or deactive  axis drawing
+	{
+		// L axe des X
+		glColor3f(1.0f, 0.0f, 0.0f);
+		glLineWidth(5.0);
+		glBegin(GL_LINES);  //X axis
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(MaxLimit, 0.0, 0.0);
+		glEnd();
 
-	glBegin(GL_QUADS);
-	glColor3f(0.2f, 1.0f, 0.5f);
-	glVertex3f(0.0f, 0.0f, 0.0f);     // Green
-	glVertex3f(200.0f, 0.0f, 0.0f);
-	glVertex3f(200.0f, 0.0f, 200.0f);
-	glVertex3f(0.0f, 0.0f, 200.0f);
+		// L axe des Y
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glLineWidth(5.0);
+		glBegin(GL_LINES);  //X axis
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(0.0, MaxLimit, 0.0);
+		glEnd();
 
-	glColor3f(1.0f, 0.0f, 1.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);     // Green
-	glVertex3f(0.0f, 0.0f, 200.0f);
-	glVertex3f(0.0f, 200.0f, 200.0f);
-	glVertex3f(0.0f, 200.0f, 0.0f);
+		// L axe des Z
+		glColor3f(0.0f, 0.0f, 1.0f);
+		glLineWidth(5.0);
+		glBegin(GL_LINES);  //X axis
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(0.0, 0.0, MaxLimit);
+		glEnd();
+	}
+	else
+	{
+		// The Axis won't be draw
+	}
+}
+int DrawBackGround(BOOL draw, GLfloat MaxLimit)
+{
+	if (draw)
+	{
+		GLUquadricObj *quadric;
+		quadric = gluNewQuadric();
+		gluSphere(quadric, 0.2, 0.2, 0.2);
 
-	glColor3f(1.0f, 1.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 200.0f);     // Green
-	glVertex3f(200.0f, 0.0f, 200.0f);
-	glVertex3f(200.0f, 200.0f, 200.0f);
-	glVertex3f(0.0f, 200.0f, 200.0f);
+		glBegin(GL_QUADS);
+		glColor3f(0.2f, 1.0f, 0.5f);
+		glVertex3f(0.0f, 0.0f, 0.0f);     // Green
+		glVertex3f(MaxLimit, 0.0f, 0.0f);
+		glVertex3f(2.0f, 0.0f, MaxLimit);
+		glVertex3f(0.0f, 0.0f, MaxLimit);
 
-	glEnd();
+		glColor3f(1.0f, 0.0f, 1.0f);
+		glVertex3f(0.0f, 0.0f, 0.0f);     // Green
+		glVertex3f(0.0f, 0.0f, MaxLimit);
+		glVertex3f(0.0f, MaxLimit, MaxLimit);
+		glVertex3f(0.0f, MaxLimit, 0.0f);
+
+		glColor3f(1.0f, 1.0f, 0.0f);
+		glVertex3f(0.0f, 0.0f, MaxLimit);     // Green
+		glVertex3f(MaxLimit, 0.0f, 2.0f);
+		glVertex3f(MaxLimit, MaxLimit, MaxLimit);
+		glVertex3f(0.0f, MaxLimit, MaxLimit);
+
+		glEnd();
+	}
+	else
+	{
+		// Background Environment no draw
+	}
+	
 }
 
 int ReadFromFile()
 {
-	numLines = 100;
+	numLines = 10;
 	for (int i = 0; i < numLines; i++)
 	{
 		ListOfPTPData[i].Time = i;
 		ListOfPTPData[i].P1 = i;
-		ListOfPTPData[i].P2 = i;
-		ListOfPTPData[i].P3 = i;
-		ListOfPTPData[i].P4 = i;
-		ListOfPTPData[i].P5 = i;
-		ListOfPTPData[i].P6 = i;
-		ListOfPTPData[i].P7 = i;
+		ListOfPTPData[i].P2 = i/2;
+		ListOfPTPData[i].P3 = i/3;
+		ListOfPTPData[i].P4 = i/4;
+		ListOfPTPData[i].P5 = i*2;
+		ListOfPTPData[i].P6 = i%9;
+		ListOfPTPData[i].P7 = i-2;
 		ListOfPTPData[i].P8 = i;
 		ListOfPTPData[i].P9 = i;
 		ListOfPTPData[i].P10 = i;
@@ -446,6 +619,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		Menu = CreateMenu();								// Create a menu and populate it
 		SubMenu = CreatePopupMenu();
 		AppendMenu(SubMenu, MF_STRING, IDC_BMPLOAD, _T("&Load Bitmap"));
+		AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
+		AppendMenu(SubMenu, MF_STRING, IDC_PTPLOAD, _T("&Load PTP"));
 		AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(SubMenu, MF_STRING, IDC_EXIT, _T("E&xit"));
 		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&File"));
@@ -492,6 +667,36 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			IDC_BUTTONMINUS,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
+		HWND hwndButtonProfileDistancePlus = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"+ P-Distance",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			220,         // x position 
+			10,         // y position 
+			100,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			IDC_PROFILEDISTANCE_PLUS,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+
+		HWND hwndButtonProfileDistanceMinus = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"MINUS",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			330,         // x position 
+			10,         // y position 
+			100,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			IDC_PROFILEDISTANCE_MINUS,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+
+		HWND hWndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE, 440, 20, 140,
+			20, Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
 	}
 					break;
 	case WM_DESTROY: {											// WM_DESTROY MESSAGE
@@ -529,6 +734,18 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			}
 		}
 						  break;
+		case IDC_PTPLOAD: {                                 // LOAD PTP-File COMMAND
+			TCHAR FileName[256];
+			int i = OpenFileDialog(&FileName[0], _countof(FileName),
+				_T("PTP file:"), _T("PTP"), _T("PTP FILE TO LOAD"), Wnd);
+			if (i != 0) {
+				// Fetch that childs data base
+
+				ReadPTPDataFromPTPFile(&FileName[0]);
+				//ReadFilePTP(&FileName[0]);
+			}
+		}
+						  break;
 		case IDC_EXIT:										// EXIT COMMAND
 			PostMessage(Wnd, WM_CLOSE, 0, 0);				// Post close message 
 			break;
@@ -543,6 +760,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			KillTimer(Wnd, 1);							// Kill the timer
 		}
 
+		//-----------Begin View configuration-------------------------------------------------------
 		case IDC_BUTTONPLUS: {
 			GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);// Fetch the data base
 			db->xrot += 5.0f;									// Inc x rotation
@@ -556,7 +774,33 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			db->yrot -= 5.0f;									// Inc y rotation
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
+		//-------------End View Configuration-------------------------------------------
+
 							  break;
+		//----------- Begin Profile Configuration---------------------------------------
+		case IDC_PROFILEDISTANCE: {
+			 	
+		}
+							  break;
+		case IDC_PROFILEDISTANCE_PLUS: {
+			if (ProfileDistance < 5.0f)
+			{
+
+				ProfileDistance += 0.05f;
+				InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us
+			}
+		}
+								  break;
+		case IDC_PROFILEDISTANCE_MINUS: {
+			if (ProfileDistance > 0.0f)
+			{
+				ProfileDistance -= 0.05f;
+				InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us
+			}
+		}
+		//----------End Profile configuration-----------------------------------------------
+								  break;
+							  
 		};
 		break;
 	case WM_PAINT: {											// WM_PAINT MESSAGE
@@ -590,6 +834,98 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 	return 0;
 };
 
+
+ void ReadPTPDataFromPTPFile(TCHAR* FileName )
+{
+	HANDLE hFile;
+	DWORD  dwBytesRead = 0;
+	char   ReadBuffer[BUFFERSIZE] = { 0 };
+	OVERLAPPED ol = { 0 };
+	
+	printf("\n");	
+
+	hFile = CreateFile(FileName,               // file to open
+		GENERIC_READ,          // open for reading
+		FILE_SHARE_READ,       // share for reading
+		NULL,                  // default security
+		OPEN_EXISTING,         // existing file only
+		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, // normal file
+		NULL);                 // no attr. template
+
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		//DisplayError(TEXT("CreateFile"));
+		_tprintf(TEXT("Terminal failure: unable to open file \"%s\" for read.\n"), FileName);
+		return;
+	}
+
+	// Read one character less than the buffer size to save room for
+	// the terminating NULL character. 
+	 
+	if (FALSE == ReadFileEx(hFile, ReadBuffer, BUFFERSIZE - 1, &ol, FileIOCompletionRoutine))
+	{
+		//DisplayError(TEXT("ReadFile"));
+		printf("Terminal failure: Unable to read from file.\n GetLastError=%08x\n", GetLastError());
+		CloseHandle(hFile);
+		return;
+	}
+	SleepEx(5000, TRUE);
+	dwBytesRead = g_BytesTransferred;
+	// This is the section of code that assumes the file is ANSI text. 
+	// Modify this block for other data types if needed.
+
+	if (dwBytesRead > 0 && dwBytesRead <= BUFFERSIZE - 1)
+	{
+		ReadBuffer[dwBytesRead] = '\0'; // NULL character
+
+		_tprintf(TEXT("Data read from %s (%d bytes): \n"), FileName, dwBytesRead);
+		printf("%s\n", ReadBuffer);
+	}
+	else if (dwBytesRead == 0)
+	{
+		_tprintf(TEXT("No data read from file %s\n"), FileName);
+	}
+	else
+	{
+		printf("\n ** Unexpected value for dwBytesRead ** \n");
+	}
+
+	// It is always good practice to close the open file handles even though
+	// the app will exit here and clean up open handles anyway.
+	
+	CloseHandle(hFile);
+}
+
+ void ReadFilePTP(TCHAR* FileName)
+ {
+	 HANDLE hout;
+	 TCHAR buff2[BUF_SIZE] = { 'a','v' };
+	 BOOL bResult = FALSE;
+
+	 char inBuffer[BUF_SIZE];
+	 DWORD nBytesToRead = BUF_SIZE;
+	 hout = CreateFile(FileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+	 if (hout == INVALID_HANDLE_VALUE)
+	 {
+		 
+	 }
+	 DWORD nRead;
+	 bResult=ReadFile(hout, buff2, &nBytesToRead, &nRead, NULL);
+
+
+	 if (bResult &&  nBytesToRead == 0)
+	 {
+		 DWORD text = buff2;
+	 }
+	 else
+	 {
+		 DWORD text = buff2;
+	 }
+
+	 CloseHandle(hout);
+
+ }
 
 /* ------------------------------------------------------------------------
 The application entry point
