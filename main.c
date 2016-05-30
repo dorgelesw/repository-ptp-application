@@ -292,8 +292,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 
 	//glBindTexture(GL_TEXTURE_2D, db->glTexture);
 
-	DrawAxis(TRUE, 10.0f);
-	DrawBackGround(FALSE,2.0f);
+	DrawAxis(TRUE, 50.0f);
+	DrawBackGround(TRUE,20.0f);
 	
 	ReadFromFile();
 	//ProfileDistance = 0.2f;
@@ -519,13 +519,32 @@ int DrawAxis(BOOL draw, GLfloat MaxLimit)
 {
 	if (draw)  //  activate or deactive  axis drawing
 	{
-		// L axe des X
+		// L axe des Xint
 		glColor3f(1.0f, 0.0f, 0.0f);
 		glLineWidth(5.0);
 		glBegin(GL_LINES);  //X axis
 		glVertex3f(0.0, 0.0, 0.0);
 		glVertex3f(MaxLimit, 0.0, 0.0);
 		glEnd();
+
+		GLfloat a = 1;
+		for (GLfloat u = 0; u <= MaxLimit; u+=a)
+		{
+			glLineWidth(3.0);
+			glBegin(GL_LINES);  //X axis
+			glVertex3f(u, -0.1, 0.0);
+			glVertex3f(u, 0.1, 0.0);
+			glEnd();
+
+			for (GLfloat unit = 0; unit <= 10; unit += 0.1)
+			{
+				glLineWidth(1.0);
+				glBegin(GL_LINES);  //X axis
+				glVertex3f(u + unit, -0.07, 0.0);
+				glVertex3f(u + unit, 0.07, 0.0);
+				glEnd();
+			}
+		}
 
 		// L axe des Y
 		glColor3f(0.0f, 1.0f, 0.0f);
@@ -562,19 +581,22 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 		glVertex3f(MaxLimit, 0.0f, 0.0f);
 		glVertex3f(2.0f, 0.0f, MaxLimit);
 		glVertex3f(0.0f, 0.0f, MaxLimit);
+		glEnd();
 
+		glBegin(GL_QUADS);
 		glColor3f(1.0f, 0.0f, 1.0f);
 		glVertex3f(0.0f, 0.0f, 0.0f);     // Green
 		glVertex3f(0.0f, 0.0f, MaxLimit);
 		glVertex3f(0.0f, MaxLimit, MaxLimit);
 		glVertex3f(0.0f, MaxLimit, 0.0f);
+		glEnd();
 
+		glBegin(GL_QUADS);
 		glColor3f(1.0f, 1.0f, 0.0f);
 		glVertex3f(0.0f, 0.0f, MaxLimit);     // Green
 		glVertex3f(MaxLimit, 0.0f, 2.0f);
 		glVertex3f(MaxLimit, MaxLimit, MaxLimit);
 		glVertex3f(0.0f, MaxLimit, MaxLimit);
-
 		glEnd();
 	}
 	else
