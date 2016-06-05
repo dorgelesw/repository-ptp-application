@@ -37,6 +37,16 @@ convert this code to those formats.
 #pragma comment(lib,"OpenGl32.lib")
 #pragma comment(lib,"GLU32.lib")
 
+GLfloat X = 0.0f; // Translate screen to x direction (left or right)
+GLfloat Y = 0.0f; // Translate screen to y direction (up or down)
+GLfloat Z = 0.0f; // Translate screen to z direction (zoom in or out)
+GLfloat rotX = 0.0f; // Rotate screen on x axis 
+GLfloat rotY = 0.0f; // Rotate screen on y axis
+GLfloat rotZ = 0.0f; // Rotate screen on z axis
+GLfloat rotLx = 0.0f; // Translate screen by using the glulookAt function (left or right)
+GLfloat rotLy = 0.0f; // Translate screen by using the glulookAt function (up or down)
+GLfloat rotLz = 0.0f; // Translate screen by using the glulookAt function (zoom in or out)
+
 typedef struct
 {
 	GLfloat Time;
@@ -60,6 +70,9 @@ typedef struct
 int ReadFromFile();
 int DrawBackGround(BOOL draw, GLfloat MaxLimit);
 int DrawAxis(BOOL draw, GLfloat MaxLimit);
+void drawAxis_X(GLfloat minLimit, GLfloat maxLimit);
+void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit);
+void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit);
 void ReadPTPDataFromPTPFile(TCHAR* FileName);
 void ReadFilePTP(TCHAR* FileName);
 
@@ -75,14 +88,14 @@ BOOL DisplayProfil_4 = 1;
 BOOL DisplayProfil_5 = 1;
 BOOL DisplayProfil_6 = 1;
 BOOL DisplayProfil_7 = 1;
-BOOL DisplayProfil_8 = 1;
-BOOL DisplayProfil_9 = 1;
-BOOL DisplayProfil_10 = 1;
-BOOL DisplayProfil_11 = 1;
-BOOL DisplayProfil_12 = 1;
-BOOL DisplayProfil_13 = 1;
-BOOL DisplayProfil_14 = 1;
-BOOL DisplayProfil_15 = 1;
+BOOL DisplayProfil_8 = 0;
+BOOL DisplayProfil_9 = 0;
+BOOL DisplayProfil_10 = 0;
+BOOL DisplayProfil_11 = 0;
+BOOL DisplayProfil_12 = 0;
+BOOL DisplayProfil_13 = 0;
+BOOL DisplayProfil_14 = 0;
+BOOL DisplayProfil_15 = 0;
 
 /***************************************************************************
 APP SPECIFIC INTERNAL CONSTANTS
@@ -251,7 +264,7 @@ main window.
 15Apr16 LdB
 --------------------------------------------------------------------------*/
 static void ReSizeGLScene(HWND Wnd) {
-	GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY); // Fetch the data base
+	GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);  // Fetch the data base
 	if (db == 0) return;											// Cant resize .. no render context
 	HDC Dc = GetWindowDC(Wnd);										// Get the window DC
 	RECT r;
@@ -262,10 +275,11 @@ static void ReSizeGLScene(HWND Wnd) {
 	wglMakeCurrent(Dc, db->Rc);										// Make our render context current
 	glViewport(0, 0, Width, Height);								// Reset The Current Viewport
 	glMatrixMode(GL_PROJECTION);									// Select The Projection Matrix
-	glLoadIdentity();												// Reset The Projection Matrix
-																	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, (GLfloat)Width / (GLfloat)Height, 0.1f, 100.0f);
-
+	glLoadIdentity();												// Reset The Projection Matrix																
+	gluPerspective(45.0f, 
+		(GLfloat)Width / (GLfloat)Height,							// Calculate The Aspect Ratio Of The Window
+			0.1f, 
+				100.0f);											
 	glMatrixMode(GL_MODELVIEW);										// Select The Modelview Matrix
 	glLoadIdentity();												// Reset The Modelview Matrix
 	ReleaseDC(Wnd, Dc);												// Release the window DC
@@ -283,70 +297,101 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	//if ((db == 0) || (db->glTexture == 0)) return;					// Cant draw .. no render context
 	//wglMakeCurrent(Dc, db->Rc);										// Make our render context current
 
+	//glClearColor(1.0, 1.0, 1.0, 1.0);								// Paint scene to white
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);				// Clear The Screen And The Depth Buffer
+	glPushMatrix();													// Push matrix before calling
+	glMatrixMode(GL_MODELVIEW);										//select the model view matrix.
 	glLoadIdentity();												// Reset The View
-	glTranslatef(-5.0f, -5.0f, -15.0f);
+	//Position and orientation of camera.
+	gluLookAt(1.0, 2.0, 20.0,										// Camera position
+		0, 0, 0,													// Camera orientation
+		0, 1, 0);													// Camera direction	
+	//Initial rotation of camera
+	glRotatef(rotX, 1.0, 0.0, 0.0);									// Rotate on x
+	glRotatef(rotY, 0.0, 1.0, 0.0);									// Rotate on y
+	glRotatef(rotZ, 0.0, 0.0, 1.0);									// Rotate on z
 
-	glRotatef(db->xrot, 1.0f, 0.0f, 0.0f);
+	// Translates the screen left or right, 
+	// up or down or zoom in zoom out
+	// Draw the positive side of the lines x,y,z
+	glTranslatef(X, Y, Z);
+
+	// Draw Axis x, y and z
+	drawAxis_X(-10.0, 100.0);
+	drawAxis_Y(-1.0, 100.0);
+	drawAxis_Z(0.0, 15.0);
+	
+	//glTranslatef(-5.0f, -5.0f, -15.0f);
+	//glRotatef(db->xrot, 1.0f, 0.0f, 0.0f);
 	glRotatef(db->yrot, 0.0f, 1.0f, 0.0f);
-
-	//glBindTexture(GL_TEXTURE_2D, db->glTexture);
-
-	DrawAxis(TRUE, 50.0f);
-	DrawBackGround(TRUE,20.0f);
+	glBindTexture(GL_TEXTURE_2D, db->glTexture);
+	//DrawAxis(TRUE, 50.0f);
+	//DrawBackGround(FALSE,20.0f);
 	
 	ReadFromFile();
-	//ProfileDistance = 0.2f;
-	GLfloat Tempi = 0.1f;
-	GLfloat Tempi1 = 0.1f;
+	ProfileDistance = 2.0f;
+	//GLfloat Tempi = 0.1f;
+	//GLfloat Tempi1 = 0.1f;
 	for (int i = 0; i < numLines; i++)
 	{
 		if (DisplayProfil_1)
 		{
 			//Profil 1
-			glBegin(GL_LINES);
+			glBegin(GL_LINE_STRIP);
 			glColor3f(1.0f, 1.0f, 0.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P1, ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P1, ProfileDistance);
 			glEnd();
 		}
+	}
+	for (int i = 0; i < numLines; i++)
+	{
 
 
 		if (DisplayProfil_2)
 		{
 			//Profi	2
-			glBegin(GL_LINES);
+			glBegin(GL_LINE_STRIP);
 			glColor3f(1.0f, 1.0f, 0.4f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P2, 2 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P2, 2 * ProfileDistance);
 			glEnd();
 		}
+	}
+	for (int i = 0; i < numLines; i++)
+	{
 
 		if (DisplayProfil_3)
 		{
 			//Profi	3
-			glBegin(GL_LINES);
+			glBegin(GL_LINE_STRIP);
 			glColor3f(1.0f, 0.7f, 0.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P3, 3 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P3, 3 * ProfileDistance);
 			glEnd();
 		}
+	}
+	for (int i = 0; i < numLines; i++)
+	{
 
 		if (DisplayProfil_4)
 		{
 
 			//Profi	4
-			glBegin(GL_LINES);
+			glBegin(GL_LINE_STRIP);
 			glColor3f(1.0f, 1.0f, 0.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P4, 4 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P4, 4 * ProfileDistance);
 			glEnd();
 		}
+	}
+	for (int i = 0; i < numLines; i++)
+	{
 
 		if (DisplayProfil_5)
 		{
 			//Profi	5
-			glBegin(GL_LINES);
+			glBegin(GL_LINE_STRIP);
 			glColor3f(1.0f, 0.0f, 4.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P5, 5 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P5, 5 * ProfileDistance);
@@ -356,7 +401,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 		if (DisplayProfil_6)
 		{
 			//Profi	6
-			glBegin(GL_LINES);
+			glBegin(GL_LINE_STRIP);
 			glColor3f(1.0f, 0.0f, 7.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P6, 6 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P6, 6 * ProfileDistance);
@@ -454,6 +499,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 			glEnd();
 		}
 	}
+	glPopMatrix(); 													// Don't forget to pop the Matrix
 }
 
 
@@ -513,6 +559,33 @@ GLuint BMP2GLTexture(TCHAR* fileName, HWND Wnd, GLDATABASE* db) {
 	ReleaseDC(Wnd, Dc);												// Release the window DC
 	DeleteObject(hBMP);												// Delete The Object
 	return (texture);												// Return the texture
+}
+
+void drawAxis_X(GLfloat minLimit, GLfloat maxLimit)
+{
+	glBegin(GL_LINES);
+	glColor3f(0.0, 1.0, 0.0); // Green for x axis
+	glVertex3f(minLimit, 0, 0);
+	glVertex3f(maxLimit, 0, 0);
+	glEnd();
+}
+
+void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit)
+{
+	glBegin(GL_LINES);
+	glColor3f(1.0, 0.0, 0.0); // Red for y axis
+	glVertex3f(0, minLimit, 0);
+	glVertex3f(0, maxLimit, 0);
+	glEnd();
+}
+
+void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit)
+{
+	glBegin(GL_LINES);
+	glColor3f(0.0, 0.0, 1.0); // Blue for z axis
+	glVertex3f(0, 0, minLimit);
+	glVertex3f(0, 0, maxLimit);
+	glEnd();
 }
 
 int DrawAxis(BOOL draw, GLfloat MaxLimit)
@@ -608,7 +681,8 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 
 int ReadFromFile()
 {
-	numLines = 10;
+	numLines = 30;
+	//get the 30 first value
 	for (int i = 0; i < numLines; i++)
 	{
 		ListOfPTPData[i].Time = i;
@@ -627,6 +701,69 @@ int ReadFromFile()
 		ListOfPTPData[i].P13 = i;
 		ListOfPTPData[i].P14 = i;
 	}
+
+	////get the 20 second value
+	//int j;
+	//for (int i = numLines - 70; i < numLines-51; i++)
+	//{
+	//	j = 5;
+	//	ListOfPTPData[i].Time = i-j;
+	//	ListOfPTPData[i].P1 = i-j;
+	//	ListOfPTPData[i].P2 = i / 2 -j;
+	//	ListOfPTPData[i].P3 = i / 3 - j;
+	//	ListOfPTPData[i].P4 = i / 4 - j;
+	//	ListOfPTPData[i].P5 = i * 2 - j;
+	//	ListOfPTPData[i].P6 = i % 9 - j;
+	//	ListOfPTPData[i].P7 = i - 2 - j;
+	//	ListOfPTPData[i].P8 = i - j;
+	//	ListOfPTPData[i].P9 = i - j;
+	//	ListOfPTPData[i].P10 = i - j;
+	//	ListOfPTPData[i].P11 = i - j;
+	//	ListOfPTPData[i].P12 = i - j;
+	//	ListOfPTPData[i].P13 = i - j;
+	//	ListOfPTPData[i].P14 = i - j;
+	//}
+	////get the 30 third value
+	//for (int i = numLines - 51; i < numLines - 71; i++)
+	//{
+	//	ListOfPTPData[i].Time = i;
+	//	ListOfPTPData[i].P1 = i;
+	//	ListOfPTPData[i].P2 = i / 2;
+	//	ListOfPTPData[i].P3 = i / 3;
+	//	ListOfPTPData[i].P4 = i / 4;
+	//	ListOfPTPData[i].P5 = i * 2;
+	//	ListOfPTPData[i].P6 = i % 9;
+	//	ListOfPTPData[i].P7 = i - 2;
+	//	ListOfPTPData[i].P8 = i;
+	//	ListOfPTPData[i].P9 = i;
+	//	ListOfPTPData[i].P10 = i;
+	//	ListOfPTPData[i].P11 = i;
+	//	ListOfPTPData[i].P12 = i;
+	//	ListOfPTPData[i].P13 = i;
+	//	ListOfPTPData[i].P14 = i;
+	//}
+	////get the 30 third value
+	//int k;
+	//for (int i = numLines - 71; i < numLines; i++)
+	//{
+	//	k = 20;
+	//	ListOfPTPData[i].Time = i - k;
+	//	ListOfPTPData[i].P1 = i - k;
+	//	ListOfPTPData[i].P2 = i / 2 - k;
+	//	ListOfPTPData[i].P3 = i / 3 - k;
+	//	ListOfPTPData[i].P4 = i / 4 - k;
+	//	ListOfPTPData[i].P5 = i * 2 - k;
+	//	ListOfPTPData[i].P6 = i % 9 - k;
+	//	ListOfPTPData[i].P7 = i - 2 - k;
+	//	ListOfPTPData[i].P8 = i - k;
+	//	ListOfPTPData[i].P9 = i - k;
+	//	ListOfPTPData[i].P10 = i - k;
+	//	ListOfPTPData[i].P11 = i - k;
+	//	ListOfPTPData[i].P12 = i - k;
+	//	ListOfPTPData[i].P13 = i - k;
+	//	ListOfPTPData[i].P14 = i - k;
+	//}
+	return 0;
 }
 /*---------------------------------------------------------------------------
 Application handler.
