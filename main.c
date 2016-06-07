@@ -40,12 +40,22 @@ convert this code to those formats.
 GLfloat X = 0.0f; // Translate screen to x direction (left or right)
 GLfloat Y = 0.0f; // Translate screen to y direction (up or down)
 GLfloat Z = 0.0f; // Translate screen to z direction (zoom in or out)
-GLfloat rotX = 0.0f; // Rotate screen on x axis 
-GLfloat rotY = 0.0f; // Rotate screen on y axis
-GLfloat rotZ = 0.0f; // Rotate screen on z axis
 GLfloat rotLx = 0.0f; // Translate screen by using the glulookAt function (left or right)
 GLfloat rotLy = 0.0f; // Translate screen by using the glulookAt function (up or down)
 GLfloat rotLz = 0.0f; // Translate screen by using the glulookAt function (zoom in or out)
+GLfloat minLimit_X = -1.0;
+GLfloat maxLimit_X = 6000.0;
+GLfloat minLimit_Y = -150.0;
+GLfloat maxLimit_Y = 1650.0;
+GLfloat minLimit_Z = 0.0;
+GLfloat maxLimit_Z = 15.0;
+GLfloat LineWidth_X = 2;
+GLfloat LineWidth_Y = 2;
+GLfloat LineWidth_Z = 2;
+GLfloat scalability_X = 10.0;
+GLfloat scalability_Y = 10.0;
+GLfloat scalability_Z = 1.0;
+
 
 typedef struct
 {
@@ -70,9 +80,9 @@ typedef struct
 int ReadFromFile();
 int DrawBackGround(BOOL draw, GLfloat MaxLimit);
 int DrawAxis(BOOL draw, GLfloat MaxLimit);
-void drawAxis_X(GLfloat minLimit, GLfloat maxLimit);
-void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit);
-void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit);
+void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
+void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
+void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
 void ReadPTPDataFromPTPFile(TCHAR* FileName);
 void ReadFilePTP(TCHAR* FileName);
 
@@ -88,14 +98,18 @@ BOOL DisplayProfil_4 = 1;
 BOOL DisplayProfil_5 = 1;
 BOOL DisplayProfil_6 = 1;
 BOOL DisplayProfil_7 = 1;
-BOOL DisplayProfil_8 = 0;
-BOOL DisplayProfil_9 = 0;
-BOOL DisplayProfil_10 = 0;
-BOOL DisplayProfil_11 = 0;
-BOOL DisplayProfil_12 = 0;
-BOOL DisplayProfil_13 = 0;
-BOOL DisplayProfil_14 = 0;
-BOOL DisplayProfil_15 = 0;
+BOOL DisplayProfil_8 = 1;
+BOOL DisplayProfil_9 = 1;
+BOOL DisplayProfil_10 = 1;
+BOOL DisplayProfil_11 = 1;
+BOOL DisplayProfil_12 = 1;
+BOOL DisplayProfil_13 = 1;
+BOOL DisplayProfil_14 = 1;
+BOOL DisplayProfil_15 = 1;
+
+BOOL DisplayUnit_X = 1;
+BOOL DisplayUnit_Y = 1;
+BOOL DisplayUnit_Z = 1;
 
 /***************************************************************************
 APP SPECIFIC INTERNAL CONSTANTS
@@ -146,8 +160,9 @@ OUR OPENGL DATA RECORD DEFINITION
 typedef struct OpenGLData {
 	HGLRC Rc;											// Our render context ** Always Needed
 	GLuint glTexture;									// Our texture to draw
-	GLfloat	xrot;										// X Rotation
-	GLfloat	yrot;										// Y Rotation
+	GLfloat	xrot;										// Rotate screen on x axis 
+	GLfloat	yrot;										// Rotate screen on y axis 
+	GLfloat zrot;										// Rotate screen on z axis 
 } GLDATABASE;
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -302,34 +317,32 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	glPushMatrix();													// Push matrix before calling
 	glMatrixMode(GL_MODELVIEW);										//select the model view matrix.
 	glLoadIdentity();												// Reset The View
+
 	//Position and orientation of camera.
 	gluLookAt(1.0, 2.0, 20.0,										// Camera position
 		0, 0, 0,													// Camera orientation
 		0, 1, 0);													// Camera direction	
-	//Initial rotation of camera
-	glRotatef(rotX, 1.0, 0.0, 0.0);									// Rotate on x
-	glRotatef(rotY, 0.0, 1.0, 0.0);									// Rotate on y
-	glRotatef(rotZ, 0.0, 0.0, 1.0);									// Rotate on z
 
 	// Translates the screen left or right, 
 	// up or down or zoom in zoom out
 	// Draw the positive side of the lines x,y,z
 	glTranslatef(X, Y, Z);
-
-	// Draw Axis x, y and z
-	drawAxis_X(-10.0, 100.0);
-	drawAxis_Y(-1.0, 100.0);
-	drawAxis_Z(0.0, 15.0);
-	
 	//glTranslatef(-5.0f, -5.0f, -15.0f);
+
 	//glRotatef(db->xrot, 1.0f, 0.0f, 0.0f);
 	glRotatef(db->yrot, 0.0f, 1.0f, 0.0f);
-	glBindTexture(GL_TEXTURE_2D, db->glTexture);
+	//glBindTexture(GL_TEXTURE_2D, db->glTexture);
+
+	// Draw Axis x, y and z
+	drawAxis_X(minLimit_X, maxLimit_X, LineWidth_X, 1.0);
+	drawAxis_Y(minLimit_Y, maxLimit_Y, LineWidth_Y, 1.0);
+	drawAxis_Z(minLimit_Z, maxLimit_Z, LineWidth_Z, 1.0);
+	
 	//DrawAxis(TRUE, 50.0f);
 	//DrawBackGround(FALSE,20.0f);
 	
 	ReadFromFile();
-	ProfileDistance = 2.0f;
+	//ProfileDistance = 1.0f;
 	//GLfloat Tempi = 0.1f;
 	//GLfloat Tempi1 = 0.1f;
 	for (int i = 0; i < numLines; i++)
@@ -337,61 +350,49 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 		if (DisplayProfil_1)
 		{
 			//Profil 1
-			glBegin(GL_LINE_STRIP);
+			glLineWidth(4.0);
+			glBegin(GL_LINES);
 			glColor3f(1.0f, 1.0f, 0.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P1, ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P1, ProfileDistance);
 			glEnd();
 		}
-	}
-	for (int i = 0; i < numLines; i++)
-	{
-
 
 		if (DisplayProfil_2)
 		{
 			//Profi	2
-			glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINES);
 			glColor3f(1.0f, 1.0f, 0.4f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P2, 2 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P2, 2 * ProfileDistance);
 			glEnd();
 		}
-	}
-	for (int i = 0; i < numLines; i++)
-	{
 
 		if (DisplayProfil_3)
 		{
 			//Profi	3
-			glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINES);
 			glColor3f(1.0f, 0.7f, 0.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P3, 3 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P3, 3 * ProfileDistance);
 			glEnd();
 		}
-	}
-	for (int i = 0; i < numLines; i++)
-	{
 
 		if (DisplayProfil_4)
 		{
 
 			//Profi	4
-			glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINES);
 			glColor3f(1.0f, 1.0f, 0.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P4, 4 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P4, 4 * ProfileDistance);
 			glEnd();
 		}
-	}
-	for (int i = 0; i < numLines; i++)
-	{
 
 		if (DisplayProfil_5)
 		{
 			//Profi	5
-			glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINES);
 			glColor3f(1.0f, 0.0f, 4.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P5, 5 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P5, 5 * ProfileDistance);
@@ -401,7 +402,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 		if (DisplayProfil_6)
 		{
 			//Profi	6
-			glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINES);
 			glColor3f(1.0f, 0.0f, 7.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P6, 6 * ProfileDistance);
 			glVertex3f(ListOfPTPData[i + 1].Time, ListOfPTPData[i + 1].P6, 6 * ProfileDistance);
@@ -561,28 +562,52 @@ GLuint BMP2GLTexture(TCHAR* fileName, HWND Wnd, GLDATABASE* db) {
 	return (texture);												// Return the texture
 }
 
-void drawAxis_X(GLfloat minLimit, GLfloat maxLimit)
+void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
 {
-	glBegin(GL_LINES);
 	glColor3f(0.0, 1.0, 0.0); // Green for x axis
+	glLineWidth(LineWidth);
+	glBegin(GL_LINES);
 	glVertex3f(minLimit, 0, 0);
 	glVertex3f(maxLimit, 0, 0);
 	glEnd();
+
+	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_X)
+	{
+		glLineWidth(5.0);
+		glBegin(GL_LINES);  //scalability
+		glVertex3f(u, -0.3, 0.0);
+		glVertex3f(u, 0.3, 0.0);
+		glEnd();
+
+		if (DisplayUnit_X)
+		{
+			for (GLfloat unit_ = u; unit_ <=u+scalability_X; unit_ += unit)
+			{
+				glLineWidth(1.0);
+				glBegin(GL_LINES);  //X axis
+				glVertex3f(unit_, -0.2, 0.0);
+				glVertex3f(unit_, 0.2, 0.0);
+				glEnd();
+			}
+		}
+	}
 }
 
-void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit)
+void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
 {
-	glBegin(GL_LINES);
 	glColor3f(1.0, 0.0, 0.0); // Red for y axis
+	glLineWidth(LineWidth);
+	glBegin(GL_LINES);
 	glVertex3f(0, minLimit, 0);
 	glVertex3f(0, maxLimit, 0);
 	glEnd();
 }
 
-void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit)
+void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
 {
-	glBegin(GL_LINES);
 	glColor3f(0.0, 0.0, 1.0); // Blue for z axis
+	glLineWidth(LineWidth);
+	glBegin(GL_LINES);
 	glVertex3f(0, 0, minLimit);
 	glVertex3f(0, 0, maxLimit);
 	glEnd();
@@ -681,7 +706,7 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 
 int ReadFromFile()
 {
-	numLines = 30;
+	numLines = 1000;
 	//get the 30 first value
 	for (int i = 0; i < numLines; i++)
 	{
@@ -798,6 +823,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		db->glTexture = 0;									// Zero the texture
 		db->xrot = 0.0f;									// Zero x rotation
 		db->yrot = 0.0f;									// Zero y rotation
+		db->zrot = 0.0f;									// Zero z rotation
+
 		SetProp(Wnd, DATABASE_PROPERTY, (HANDLE)db);		// Set the database structure to a property on window
 		ReSizeGLScene(Wnd);									// Rescale the OpenGL window
 
