@@ -287,13 +287,13 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	glLoadIdentity();												// Reset The View
 	glTranslatef(-5.0f, -5.0f, -15.0f);
 
-	glRotatef(db->xrot, 1.0f, 0.0f, 0.0f);
+	//glRotatef(db->xrot, 1.0f, 0.0f, 0.0f);
 	glRotatef(db->yrot, 0.0f, 1.0f, 0.0f);
 
 	//glBindTexture(GL_TEXTURE_2D, db->glTexture);
 
 	DrawAxis(TRUE, 50.0f);
-	DrawBackGround(TRUE,20.0f);
+	DrawBackGround(FALSE,20.0f);
 	
 	ReadFromFile();
 	//ProfileDistance = 0.2f;
