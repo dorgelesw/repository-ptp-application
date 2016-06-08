@@ -20,7 +20,6 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
-3DptpApplication.sdf
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -235,6 +234,3 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
-
-#project files
-3DptpApplication.sdf

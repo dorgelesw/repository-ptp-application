@@ -85,11 +85,15 @@ void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
 void ReadPTPDataFromPTPFile(TCHAR* FileName);
 void ReadFilePTP(TCHAR* FileName);
+BOOL LoadFileAndRetrieveProfile(HWND hEdit, LPCTSTR pszFileName);
 
 
 PTPData	 ListOfPTPData[6000] = { 0 };
 int numLines = 0;
 GLfloat ProfileDistance = 1.0f;
+HWND hWndEdit;
+
+BOOL DisplayBackground = 0;
 
 BOOL DisplayProfil_1 = 1;
 BOOL DisplayProfil_2 = 1;
@@ -128,6 +132,12 @@ APP SPECIFIC INTERNAL CONSTANTS
 #define IDC_PROFILEDISTANCE 52							// EDITBUTTON PROFILEDISTANCE 
 #define IDC_PROFILEDISTANCE_PLUS 53							// EDITBUTTON PROFILEDISTANCE Increse 
 #define IDC_PROFILEDISTANCE_MINUS 54							// EDITBUTTON PROFILEDISTANCE decrese
+
+#define IDC_PROFILE_1_DISPLAY 300							// DISPLAY PROFILE 1
+#define IDC_PROFILE_2_DISPLAY 301							// DISPLAY PROFILE 2
+#define IDC_PROFILE_3_DISPLAY 302							// DISPLAY PROFILE 3
+
+#define IDC_BACKGROUND_DISPLAY 350							// DISPLAY BACKGROUND 3
 #define BUF_SIZE 40				
 
 //------------Begin Read PTP File--------Open Dialog-------------
@@ -340,6 +350,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	
 	//DrawAxis(TRUE, 50.0f);
 	//DrawBackGround(FALSE,20.0f);
+	//DrawAxis(TRUE, 50.0f);
+	DrawBackGround(DisplayBackground,20.0f);
 	
 	ReadFromFile();
 	//ProfileDistance = 1.0f;
@@ -673,12 +685,35 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 		quadric = gluNewQuadric();
 		gluSphere(quadric, 0.2, 0.2, 0.2);
 
+		//glBegin(GL_QUADS);
+		//glColor3f(0.2f, 1.0f, 0.5f);
+		//glVertex3f(0.0f, 0.0f, 0.0f);     // Green
+		//glVertex3f(MaxLimit, 0.0f, 0.0f);
+		//glVertex3f(MaxLimit, 0.0f, MaxLimit);
+		//glVertex3f(0.0f, 0.0f, MaxLimit);
+		//glEnd();
+
+		//glBegin(GL_QUADS);
+		//glColor3f(1.0f, 0.0f, 1.0f);
+		//glVertex3f(0.0f, 0.0f, 0.0f);     // Green
+		//glVertex3f(0.0f, 0.0f, MaxLimit);
+		//glVertex3f(0.0f, MaxLimit, MaxLimit);
+		//glVertex3f(0.0f, MaxLimit, 0.0f);
+		//glEnd();
+
+		//glBegin(GL_QUADS);
+		//glColor3f(1.0f, 1.0f, 0.0f);
+		//glVertex3f(0.0f, 0.0f, MaxLimit);     // Green
+		//glVertex3f(MaxLimit, 0.0f, 2.0f);
+		//glVertex3f(MaxLimit, MaxLimit, MaxLimit);
+		//glVertex3f(0.0f, MaxLimit, MaxLimit);
+
 		glBegin(GL_QUADS);
 		glColor3f(0.2f, 1.0f, 0.5f);
 		glVertex3f(0.0f, 0.0f, 0.0f);     // Green
 		glVertex3f(MaxLimit, 0.0f, 0.0f);
-		glVertex3f(2.0f, 0.0f, MaxLimit);
-		glVertex3f(0.0f, 0.0f, MaxLimit);
+		glVertex3f(MaxLimit, 0.0f, MaxLimit);
+		glVertex3f(0.0f, MaxLimit, 0.0f);
 		glEnd();
 
 		glBegin(GL_QUADS);
@@ -691,10 +726,10 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 
 		glBegin(GL_QUADS);
 		glColor3f(1.0f, 1.0f, 0.0f);
-		glVertex3f(0.0f, 0.0f, MaxLimit);     // Green
-		glVertex3f(MaxLimit, 0.0f, 2.0f);
-		glVertex3f(MaxLimit, MaxLimit, MaxLimit);
-		glVertex3f(0.0f, MaxLimit, MaxLimit);
+		glVertex3f(0.0f, 0.0f, 0.0f);     // Green
+		glVertex3f(MaxLimit, 0.0f, 0.0f);
+		glVertex3f(MaxLimit, 0.0f, MaxLimit);
+		glVertex3f(0.0f, 0.0f, MaxLimit);
 		glEnd();
 	}
 	else
@@ -802,19 +837,19 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		HMENU SubMenu, Menu;
 		Menu = CreateMenu();								// Create a menu and populate it
 		SubMenu = CreatePopupMenu();
-		AppendMenu(SubMenu, MF_STRING, IDC_BMPLOAD, _T("&Load Bitmap"));
-		AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
+		//AppendMenu(SubMenu, MF_STRING, IDC_BMPLOAD, _T("&Load Bitmap"));
+		//AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(SubMenu, MF_STRING, IDC_PTPLOAD, _T("&Load PTP"));
 		AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(SubMenu, MF_STRING, IDC_EXIT, _T("E&xit"));
 		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&File"));
 		SubMenu = CreatePopupMenu();
-		AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTART, _T("&Start Timer"));
-		AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTOP, _T("Stop &Timer"));
-		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Timer"));
-		SubMenu = CreatePopupMenu();
-		AppendMenu(SubMenu, MF_STRING, 301, _T("&Vectorize"));
-		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Process"));
+		//AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTART, _T("&Start Timer"));
+		//AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTOP, _T("Stop &Timer"));
+		//AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Timer"));
+		//SubMenu = CreatePopupMenu();
+		/*AppendMenu(SubMenu, MF_STRING, 301, _T("&Vectorize"));
+		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Process"));*/
 		SetMenu(Wnd, Menu);									// Set the menu to window
 
 															// Make a data structure, initialize it and attach to Wnd
@@ -880,9 +915,60 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
-		HWND hWndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			WS_CHILD | WS_VISIBLE, 440, 20, 140,
-			20, Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		HWND hwndButtonProfile1Display = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"Profile 1",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			440,         // x position 
+			10,         // y position 
+			100,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			IDC_PROFILE_1_DISPLAY,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+		HWND hwndButtonProfile2Display = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"Profile 2",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			550,         // x position 
+			10,         // y position 
+			100,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			IDC_PROFILE_2_DISPLAY,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+
+		HWND hwndButtonProfile3Display = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"Profile 3",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			660,         // x position 
+			10,         // y position 
+			100,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			IDC_PROFILE_3_DISPLAY,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+
+		HWND hwndButtonBackGround = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"Background",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			770,         // x position 
+			10,         // y position 
+			100,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			IDC_BACKGROUND_DISPLAY,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+
+		 hWndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE, 880, 20, 1400,
+			50, Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
 	}
 					break;
 	case WM_DESTROY: {											// WM_DESTROY MESSAGE
@@ -927,8 +1013,10 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			if (i != 0) {
 				// Fetch that childs data base
 
-				ReadPTPDataFromPTPFile(&FileName[0]);
+				//ReadPTPDataFromPTPFile(&FileName[0]);
 				//ReadFilePTP(&FileName[0]);
+
+				LoadTextFileToEdit(hWndEdit, &FileName[0]);
 			}
 		}
 						  break;
@@ -949,34 +1037,33 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		//-----------Begin View configuration-------------------------------------------------------
 		case IDC_BUTTONPLUS: {
 			GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);// Fetch the data base
-			db->xrot += 5.0f;									// Inc x rotation
+			//db->xrot += 5.0f;									// Inc x rotation
 			db->yrot += 5.0f;									// Inc y rotation
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
-							 break;
+		break;
 		case IDC_BUTTONMINUS: {
 			GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);// Fetch the data base
-			db->xrot -= 5.0f;									// Inc x rotation
+			//db->xrot -= 5.0f;									// Inc x rotation
 			db->yrot -= 5.0f;									// Inc y rotation
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
+		break;
 		//-------------End View Configuration-------------------------------------------
 
-							  break;
 		//----------- Begin Profile Configuration---------------------------------------
 		case IDC_PROFILEDISTANCE: {
 			 	
 		}
-							  break;
+		break;
 		case IDC_PROFILEDISTANCE_PLUS: {
 			if (ProfileDistance < 5.0f)
 			{
-
 				ProfileDistance += 0.05f;
 				InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us
 			}
 		}
-								  break;
+		 break;
 		case IDC_PROFILEDISTANCE_MINUS: {
 			if (ProfileDistance > 0.0f)
 			{
@@ -984,8 +1071,44 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 				InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us
 			}
 		}
+		break;
+		case IDC_PROFILE_1_DISPLAY: {
+			if(DisplayProfil_1)
+				DisplayProfil_1 = FALSE;
+			else
+				DisplayProfil_1 = TRUE;
+
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+		break;
+		case IDC_PROFILE_2_DISPLAY: {
+			if (DisplayProfil_2)
+				DisplayProfil_2 = FALSE;
+			else
+				DisplayProfil_2 = TRUE;
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+		break; 
+		case IDC_PROFILE_3_DISPLAY: {
+			if (DisplayProfil_3)
+				DisplayProfil_3 = FALSE;
+			else
+				DisplayProfil_3 = TRUE;
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+		break;
+		case IDC_BACKGROUND_DISPLAY: {
+			if (DisplayBackground)
+				DisplayBackground = FALSE;
+			else
+				DisplayBackground = TRUE;
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+									break;
+					
+		
 		//----------End Profile configuration-----------------------------------------------
-								  break;
+								  
 							  
 		};
 		break;
@@ -1110,7 +1233,91 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 	 }
 
 	 CloseHandle(hout);
+ }
 
+ BOOL LoadTextFileToEdit(HWND hEdit, LPCTSTR pszFileName)
+ {
+	 HANDLE hFile;
+	 BOOL bSuccess = FALSE;
+
+	 hFile = CreateFile(pszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	 if (hFile != INVALID_HANDLE_VALUE)
+	 {
+		 DWORD dwFileSize;
+		 dwFileSize = GetFileSize(hFile, NULL);
+		 if (dwFileSize != 0xFFFFFFFF)
+		 {
+			 LPSTR pszFileText;
+			 pszFileText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1);
+			 if (pszFileText != NULL)
+			 {
+				 BYTE buffer[437];
+				 DWORD dwBytesRead;
+				 BOOL bSuccess = ReadFile(hFile, &buffer, 436, &dwBytesRead, NULL);
+				 buffer[436] = "\0";
+				 if (SetWindowText(hEdit, &buffer))
+					 bSuccess = TRUE; // It worked!
+
+				 if (!bSuccess)
+				 {
+					 //dwErrorCode = GetLastError();
+				 }
+				 while (bSuccess && dwBytesRead) // Hier sollen wir die Datei Zeile für Zeile lesen und  ListOfPTPData befühlen.
+				 {
+					 bSuccess = ReadFile(hFile, &buffer, 436, &dwBytesRead, NULL);
+				 }				
+
+				 //DWORD dwRead;
+				 //if (ReadFile(hFile, pszFileText, dwFileSize, &dwRead, NULL))
+				 //{
+					// pszFileText[dwFileSize] = 0; // Add null terminator
+					// if (SetWindowText(hEdit, pszFileText))
+					//	 bSuccess = TRUE; // It worked!
+				 //}
+				 GlobalFree(pszFileText);
+			 }
+		 }
+		 CloseHandle(hFile);
+	 }
+	 return bSuccess;
+ }
+
+ BOOL LoadFileAndRetrieveProfile(HWND hEdit, LPCTSTR pszFileName)
+ {
+	 HANDLE hFile;
+	 BOOL bSuccess = FALSE;
+	 hFile = CreateFile(pszFileName, GENERIC_READ,
+		 FILE_SHARE_READ, NULL,
+		 OPEN_EXISTING, 0, NULL);
+	 if (hFile != INVALID_HANDLE_VALUE)
+	 {
+		 DWORD dwFileSize;
+		 LPSTR pszFileText;
+		 LPSTR psHeader; //771 DWORD = 1542Bytes
+
+		 dwFileSize = GetFileSize(hFile, NULL);
+		 pszFileText = (char *)GlobalAlloc(GPTR, dwFileSize + 1);
+		 psHeader = (char *)GlobalAlloc(GPTR, 218);
+		 if (pszFileText != NULL)
+		 {
+			 DWORD dwRead;
+			 if (ReadFile(hFile, pszFileText, dwFileSize, &dwRead, NULL))
+			 {
+				 pszFileText[dwFileSize] = '\0';
+				 for (int t = 0; t < 128; t++)
+				 {
+					 //test(pszFileText);
+					 psHeader[t] = pszFileText[t];
+				 }
+				 //psHeader = pszFileText;
+				 //test(pszFileText);
+				 if (SetWindowText(hEdit, psHeader))
+					 bSuccess = TRUE;
+			 }
+			 GlobalFree(pszFileText);
+		 }
+	 }
+	 return bSuccess;
  }
 
 /* ------------------------------------------------------------------------
