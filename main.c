@@ -37,6 +37,26 @@ convert this code to those formats.
 #pragma comment(lib,"OpenGl32.lib")
 #pragma comment(lib,"GLU32.lib")
 
+GLfloat X = 0.0f; // Translate screen to x direction (left or right)
+GLfloat Y = 0.0f; // Translate screen to y direction (up or down)
+GLfloat Z = 0.0f; // Translate screen to z direction (zoom in or out)
+GLfloat rotLx = 0.0f; // Translate screen by using the glulookAt function (left or right)
+GLfloat rotLy = 0.0f; // Translate screen by using the glulookAt function (up or down)
+GLfloat rotLz = 0.0f; // Translate screen by using the glulookAt function (zoom in or out)
+GLfloat minLimit_X = -1.0;
+GLfloat maxLimit_X = 6000.0;
+GLfloat minLimit_Y = -150.0;
+GLfloat maxLimit_Y = 1650.0;
+GLfloat minLimit_Z = 0.0;
+GLfloat maxLimit_Z = 15.0;
+GLfloat LineWidth_X = 2;
+GLfloat LineWidth_Y = 2;
+GLfloat LineWidth_Z = 2;
+GLfloat scalability_X = 10.0;
+GLfloat scalability_Y = 10.0;
+GLfloat scalability_Z = 1.0;
+
+
 typedef struct
 {
 	GLfloat Time;
@@ -66,6 +86,9 @@ typedef struct
 int ReadFromFile();
 int DrawBackGround(BOOL draw, GLfloat MaxLimit);
 int DrawAxis(BOOL draw, GLfloat MaxLimit);
+void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
+void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
+void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
 void ReadPTPDataFromPTPFile(TCHAR* FileName);
 void ReadFilePTP(TCHAR* FileName);
 BOOL LoadFileAndRetrieveProfile(HWND hEdit, LPCTSTR pszFileName);
@@ -101,6 +124,10 @@ BOOL DisplayProfil_18 = 1;
 BOOL DisplayProfil_19 = 1;
 BOOL DisplayProfil_20 = 1;
 BOOL DisplayProfil_21 = 1;
+
+BOOL DisplayUnit_X = 1;
+BOOL DisplayUnit_Y = 1;
+BOOL DisplayUnit_Z = 0;
 
 /***************************************************************************
 APP SPECIFIC INTERNAL CONSTANTS
@@ -166,8 +193,9 @@ OUR OPENGL DATA RECORD DEFINITION
 typedef struct OpenGLData {
 	HGLRC Rc;											// Our render context ** Always Needed
 	GLuint glTexture;									// Our texture to draw
-	GLfloat	xrot;										// X Rotation
-	GLfloat	yrot;										// Y Rotation
+	GLfloat	xrot;										// Rotate screen on x axis 
+	GLfloat	yrot;										// Rotate screen on y axis 
+	GLfloat zrot;										// Rotate screen on z axis 
 } GLDATABASE;
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -284,7 +312,7 @@ main window.
 15Apr16 LdB
 --------------------------------------------------------------------------*/
 static void ReSizeGLScene(HWND Wnd) {
-	GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY); // Fetch the data base
+	GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);  // Fetch the data base
 	if (db == 0) return;											// Cant resize .. no render context
 	HDC Dc = GetWindowDC(Wnd);										// Get the window DC
 	RECT r;
@@ -295,10 +323,11 @@ static void ReSizeGLScene(HWND Wnd) {
 	wglMakeCurrent(Dc, db->Rc);										// Make our render context current
 	glViewport(0, 0, Width, Height);								// Reset The Current Viewport
 	glMatrixMode(GL_PROJECTION);									// Select The Projection Matrix
-	glLoadIdentity();												// Reset The Projection Matrix
-																	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, (GLfloat)Width / (GLfloat)Height, 0.1f, 100.0f);
-
+	glLoadIdentity();												// Reset The Projection Matrix																
+	gluPerspective(45.0f, 
+		(GLfloat)Width / (GLfloat)Height,							// Calculate The Aspect Ratio Of The Window
+			0.1f, 
+				100.0f);											
 	glMatrixMode(GL_MODELVIEW);										// Select The Modelview Matrix
 	glLoadIdentity();												// Reset The Modelview Matrix
 	ReleaseDC(Wnd, Dc);												// Release the window DC
@@ -316,16 +345,35 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	//if ((db == 0) || (db->glTexture == 0)) return;					// Cant draw .. no render context
 	//wglMakeCurrent(Dc, db->Rc);										// Make our render context current
 
+	//glClearColor(1.0, 1.0, 1.0, 1.0);								// Paint scene to white
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);				// Clear The Screen And The Depth Buffer
+	glPushMatrix();													// Push matrix before calling
+	glMatrixMode(GL_MODELVIEW);										//select the model view matrix.
 	glLoadIdentity();												// Reset The View
-	glTranslatef(-5.0f, -5.0f, -15.0f);
+
+	//Position and orientation of camera.
+	gluLookAt(1.0, 2.0, 20.0,										// Camera position
+		0, 0, 0,													// Camera orientation
+		0, 1, 0);													// Camera direction	
+
+	// Translates the screen left or right, 
+	// up or down or zoom in zoom out
+	// Draw the positive side of the lines x,y,z
+	glTranslatef(X, Y, Z);
+	//glTranslatef(-5.0f, -5.0f, -15.0f);
 
 	//glRotatef(db->xrot, 1.0f, 0.0f, 0.0f);
 	glRotatef(db->yrot, 0.0f, 1.0f, 0.0f);
-
 	//glBindTexture(GL_TEXTURE_2D, db->glTexture);
 
-	DrawAxis(TRUE, 50.0f);
+	// Draw Axis x, y and z
+	drawAxis_X(minLimit_X, maxLimit_X, LineWidth_X, 1.0);
+	drawAxis_Y(minLimit_Y, maxLimit_Y, LineWidth_Y, 1.0);
+	drawAxis_Z(minLimit_Z, maxLimit_Z, LineWidth_Z, 0.1);
+	
+	//DrawAxis(TRUE, 50.0f);
+	//DrawBackGround(FALSE,20.0f);
+	//DrawAxis(TRUE, 50.0f);
 	DrawBackGround(DisplayBackground,20.0f);
 	
 	//ReadFromFile();
@@ -335,6 +383,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 
 	GLfloat TimeScala = 10;
 	GLfloat PScala = 10;
+
 	for (int i = 0; i < numLines; i++)
 	{
 		GLfloat time = ListOfPTPData[i].Time / TimeScala;
@@ -343,13 +392,13 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 		{
 			glLineWidth(2.0);
 			//Profil 1
+			glLineWidth(1.0);
 			glBegin(GL_LINES);
 			glColor3f(1.0f, 1.0f, 0.0f);
 			glVertex3f(time, ListOfPTPData[i].P1/ PScala, ProfileDistance);
 			glVertex3f(timePlus1, ListOfPTPData[i + 1].P1/ PScala, ProfileDistance);
 			glEnd();
 		}
-
 
 		if (DisplayProfil_2)
 		{
@@ -553,6 +602,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 			glEnd();
 		}
 	}
+	glPopMatrix(); 													// Don't forget to pop the Matrix
 }
 
 
@@ -612,6 +662,99 @@ GLuint BMP2GLTexture(TCHAR* fileName, HWND Wnd, GLDATABASE* db) {
 	ReleaseDC(Wnd, Dc);												// Release the window DC
 	DeleteObject(hBMP);												// Delete The Object
 	return (texture);												// Return the texture
+}
+
+void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
+{
+	glColor3f(0.0, 1.0, 0.0); // Green for x axis
+	glLineWidth(LineWidth);
+	glBegin(GL_LINES);
+	glVertex3f(minLimit, 0, 0);
+	glVertex3f(maxLimit, 0, 0);
+	glEnd();
+
+	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_X)
+	{
+		glLineWidth(3.0);
+		glBegin(GL_LINES);  //scalability
+		glVertex3f(u, -0.5, 0.0);
+		glVertex3f(u, 0.5, 0.0);
+		glEnd();
+
+		if (DisplayUnit_X)
+		{
+			for (GLfloat unit_ = u; unit_ <=u+scalability_X; unit_ += unit)
+			{
+				glLineWidth(1.0);
+				glBegin(GL_LINES);  //X axis
+				glVertex3f(unit_, -0.2, 0.0);
+				glVertex3f(unit_, 0.2, 0.0);
+				glEnd();
+			}
+		}
+	}
+}
+
+void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
+{
+	glColor3f(1.0, 0.0, 0.0); // Red for y axis
+	glLineWidth(LineWidth);
+	glBegin(GL_LINES);
+	glVertex3f(0, minLimit, 0);
+	glVertex3f(0, maxLimit, 0);
+	glEnd();
+
+	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_Y)
+	{
+		glLineWidth(3.0);
+		glBegin(GL_LINES);  //scalability
+		glVertex3f(-0.5, u, 0.0);
+		glVertex3f(0.5, u, 0.0);
+		glEnd();
+
+		if (DisplayUnit_Y)
+		{
+			for (GLfloat unit_ = u; unit_ <= u + scalability_Y; unit_ += unit)
+			{
+				glLineWidth(1.0);
+				glBegin(GL_LINES);  //Y axis
+				glVertex3f(-0.2, unit_, 0.0);
+				glVertex3f(0.2, unit_, 0.0);
+				glEnd();
+			}
+		}
+	}
+}
+
+void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
+{
+	glColor3f(0.0, 0.0, 1.0); // Blue for z axis
+	glLineWidth(LineWidth);
+	glBegin(GL_LINES);
+	glVertex3f(0, 0, minLimit);
+	glVertex3f(0, 0, maxLimit);
+	glEnd();
+
+	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_Z)
+	{
+		glLineWidth(3.0);
+		glBegin(GL_LINES);  //scalability
+		glVertex3f(0.0, -0.2, u);
+		glVertex3f(0.0, 0.2, u);
+		glEnd();
+
+		if (DisplayUnit_Z)
+		{
+			for (GLfloat unit_ = u; unit_ <= u + scalability_Z; unit_ += unit)
+			{
+				glLineWidth(1.0);
+				glBegin(GL_LINES);  //Z axis
+				glVertex3f(0.0, -0.2, unit_);
+				glVertex3f(0.0, 0.2, unit_);
+				glEnd();
+			}
+		}
+	}
 }
 
 int DrawAxis(BOOL draw, GLfloat MaxLimit)
@@ -782,7 +925,8 @@ INT ReadSensorFile_PTP( LPTSTR lpFile)
 
 int ReadFromFile()
 {
-	numLines = 10;
+	numLines = 1000;
+	//get the 30 first value
 	for (int i = 0; i < numLines; i++)
 	{
 		ListOfPTPData[i].Time = i;
@@ -801,6 +945,69 @@ int ReadFromFile()
 		ListOfPTPData[i].P13 = i;
 		ListOfPTPData[i].P14 = i;
 	}
+
+	////get the 20 second value
+	//int j;
+	//for (int i = numLines - 70; i < numLines-51; i++)
+	//{
+	//	j = 5;
+	//	ListOfPTPData[i].Time = i-j;
+	//	ListOfPTPData[i].P1 = i-j;
+	//	ListOfPTPData[i].P2 = i / 2 -j;
+	//	ListOfPTPData[i].P3 = i / 3 - j;
+	//	ListOfPTPData[i].P4 = i / 4 - j;
+	//	ListOfPTPData[i].P5 = i * 2 - j;
+	//	ListOfPTPData[i].P6 = i % 9 - j;
+	//	ListOfPTPData[i].P7 = i - 2 - j;
+	//	ListOfPTPData[i].P8 = i - j;
+	//	ListOfPTPData[i].P9 = i - j;
+	//	ListOfPTPData[i].P10 = i - j;
+	//	ListOfPTPData[i].P11 = i - j;
+	//	ListOfPTPData[i].P12 = i - j;
+	//	ListOfPTPData[i].P13 = i - j;
+	//	ListOfPTPData[i].P14 = i - j;
+	//}
+	////get the 30 third value
+	//for (int i = numLines - 51; i < numLines - 71; i++)
+	//{
+	//	ListOfPTPData[i].Time = i;
+	//	ListOfPTPData[i].P1 = i;
+	//	ListOfPTPData[i].P2 = i / 2;
+	//	ListOfPTPData[i].P3 = i / 3;
+	//	ListOfPTPData[i].P4 = i / 4;
+	//	ListOfPTPData[i].P5 = i * 2;
+	//	ListOfPTPData[i].P6 = i % 9;
+	//	ListOfPTPData[i].P7 = i - 2;
+	//	ListOfPTPData[i].P8 = i;
+	//	ListOfPTPData[i].P9 = i;
+	//	ListOfPTPData[i].P10 = i;
+	//	ListOfPTPData[i].P11 = i;
+	//	ListOfPTPData[i].P12 = i;
+	//	ListOfPTPData[i].P13 = i;
+	//	ListOfPTPData[i].P14 = i;
+	//}
+	////get the 30 third value
+	//int k;
+	//for (int i = numLines - 71; i < numLines; i++)
+	//{
+	//	k = 20;
+	//	ListOfPTPData[i].Time = i - k;
+	//	ListOfPTPData[i].P1 = i - k;
+	//	ListOfPTPData[i].P2 = i / 2 - k;
+	//	ListOfPTPData[i].P3 = i / 3 - k;
+	//	ListOfPTPData[i].P4 = i / 4 - k;
+	//	ListOfPTPData[i].P5 = i * 2 - k;
+	//	ListOfPTPData[i].P6 = i % 9 - k;
+	//	ListOfPTPData[i].P7 = i - 2 - k;
+	//	ListOfPTPData[i].P8 = i - k;
+	//	ListOfPTPData[i].P9 = i - k;
+	//	ListOfPTPData[i].P10 = i - k;
+	//	ListOfPTPData[i].P11 = i - k;
+	//	ListOfPTPData[i].P12 = i - k;
+	//	ListOfPTPData[i].P13 = i - k;
+	//	ListOfPTPData[i].P14 = i - k;
+	//}
+	return 0;
 }
 /*---------------------------------------------------------------------------
 Application handler.
@@ -835,6 +1042,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		db->glTexture = 0;									// Zero the texture
 		db->xrot = 0.0f;									// Zero x rotation
 		db->yrot = 0.0f;									// Zero y rotation
+		db->zrot = 0.0f;									// Zero z rotation
+
 		SetProp(Wnd, DATABASE_PROPERTY, (HANDLE)db);		// Set the database structure to a property on window
 		ReSizeGLScene(Wnd);									// Rescale the OpenGL window
 
