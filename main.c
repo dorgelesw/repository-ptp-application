@@ -113,7 +113,7 @@ BOOL DisplayProfil_15 = 1;
 
 BOOL DisplayUnit_X = 1;
 BOOL DisplayUnit_Y = 1;
-BOOL DisplayUnit_Z = 1;
+BOOL DisplayUnit_Z = 0;
 
 /***************************************************************************
 APP SPECIFIC INTERNAL CONSTANTS
@@ -346,7 +346,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	// Draw Axis x, y and z
 	drawAxis_X(minLimit_X, maxLimit_X, LineWidth_X, 1.0);
 	drawAxis_Y(minLimit_Y, maxLimit_Y, LineWidth_Y, 1.0);
-	drawAxis_Z(minLimit_Z, maxLimit_Z, LineWidth_Z, 1.0);
+	drawAxis_Z(minLimit_Z, maxLimit_Z, LineWidth_Z, 0.1);
 	
 	//DrawAxis(TRUE, 50.0f);
 	//DrawBackGround(FALSE,20.0f);
@@ -362,7 +362,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 		if (DisplayProfil_1)
 		{
 			//Profil 1
-			glLineWidth(4.0);
+			glLineWidth(1.0);
 			glBegin(GL_LINES);
 			glColor3f(1.0f, 1.0f, 0.0f);
 			glVertex3f(ListOfPTPData[i].Time, ListOfPTPData[i].P1, ProfileDistance);
@@ -585,10 +585,10 @@ void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 
 	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_X)
 	{
-		glLineWidth(5.0);
+		glLineWidth(3.0);
 		glBegin(GL_LINES);  //scalability
-		glVertex3f(u, -0.3, 0.0);
-		glVertex3f(u, 0.3, 0.0);
+		glVertex3f(u, -0.5, 0.0);
+		glVertex3f(u, 0.5, 0.0);
 		glEnd();
 
 		if (DisplayUnit_X)
@@ -613,6 +613,27 @@ void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	glVertex3f(0, minLimit, 0);
 	glVertex3f(0, maxLimit, 0);
 	glEnd();
+
+	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_Y)
+	{
+		glLineWidth(3.0);
+		glBegin(GL_LINES);  //scalability
+		glVertex3f(-0.5, u, 0.0);
+		glVertex3f(0.5, u, 0.0);
+		glEnd();
+
+		if (DisplayUnit_Y)
+		{
+			for (GLfloat unit_ = u; unit_ <= u + scalability_Y; unit_ += unit)
+			{
+				glLineWidth(1.0);
+				glBegin(GL_LINES);  //Y axis
+				glVertex3f(-0.2, unit_, 0.0);
+				glVertex3f(0.2, unit_, 0.0);
+				glEnd();
+			}
+		}
+	}
 }
 
 void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
@@ -623,6 +644,27 @@ void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	glVertex3f(0, 0, minLimit);
 	glVertex3f(0, 0, maxLimit);
 	glEnd();
+
+	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_Z)
+	{
+		glLineWidth(3.0);
+		glBegin(GL_LINES);  //scalability
+		glVertex3f(0.0, -0.2, u);
+		glVertex3f(0.0, 0.2, u);
+		glEnd();
+
+		if (DisplayUnit_Z)
+		{
+			for (GLfloat unit_ = u; unit_ <= u + scalability_Z; unit_ += unit)
+			{
+				glLineWidth(1.0);
+				glBegin(GL_LINES);  //Z axis
+				glVertex3f(0.0, -0.2, unit_);
+				glVertex3f(0.0, 0.2, unit_);
+				glEnd();
+			}
+		}
+	}
 }
 
 int DrawAxis(BOOL draw, GLfloat MaxLimit)
