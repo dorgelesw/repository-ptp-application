@@ -1,10 +1,9 @@
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{						OPENGL APP DEMO VERSION 1.0					        }
-{       Writen by Leon de Boer, Perth, Western Australia, 2016.				}
-{	  	contact: ldeboer@gateway.net.au										}
+{						OPENGL APP 3D PTP VERSION 1.0					    }
+{       Writen by Gilles Tanko P7c SARL, Jaunde 2016.						}
+{	  	contact: info@p7c-sarl,com											}
 {																			}
-{       Copyright released on Code Project Open License (CPOL) and use      }
-{       and/or abuse is freely given :-)									}
+{       																	}
 {																			}
 {        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND		}
 {++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -31,6 +30,8 @@ convert this code to those formats.
 #include <stdio.h>
 #include <strsafe.h>
 
+
+#define SIZE_OF_PTP 6000
 // This is the lazy adding libraries via #pragma rather than in linker includes
 // If you are not on visual studio you will need to add the librarys via your linker
 #pragma comment(lib,"ComCtl32.lib")
@@ -95,7 +96,7 @@ BOOL LoadFileAndRetrieveProfile(HWND hEdit, LPCTSTR pszFileName);
 INT ReadSensorFile_PTP(LPTSTR lpFile);
 
 
-PTPData	 ListOfPTPData[6000] = { 0 };
+PTPData	 ListOfPTPData[SIZE_OF_PTP] = { 0 };
 int numLines = 0;
 GLfloat ProfileDistance = 1.0f;
 HWND hWndEdit;
@@ -124,6 +125,28 @@ BOOL DisplayProfil_18 = 1;
 BOOL DisplayProfil_19 = 1;
 BOOL DisplayProfil_20 = 1;
 BOOL DisplayProfil_21 = 1;
+
+BOOL DataProfil_1 = 0;
+BOOL DataProfil_2 = 0;
+BOOL DataProfil_3 = 0;
+BOOL DataProfil_4 = 0;
+BOOL DataProfil_5 = 0;
+BOOL DataProfil_6 = 0;
+BOOL DataProfil_7 = 0;
+BOOL DataProfil_8 = 0;
+BOOL DataProfil_9 = 0;
+BOOL DataProfil_10 = 0;
+BOOL DataProfil_11 = 0;
+BOOL DataProfil_12 = 0;
+BOOL DataProfil_13 = 0;
+BOOL DataProfil_14 = 0;
+BOOL DataProfil_15 = 0;
+BOOL DataProfil_16 = 0;
+BOOL DataProfil_17 = 0;
+BOOL DataProfil_18 = 0;
+BOOL DataProfil_19 = 0;
+BOOL DataProfil_20 = 0;
+BOOL DataProfil_21 = 0;
 
 BOOL DisplayUnit_X = 1;
 BOOL DisplayUnit_Y = 1;
@@ -161,6 +184,8 @@ APP SPECIFIC INTERNAL CONSTANTS
 #define BUF_SIZE 40			
 #define MAX_PATH  260
 #define MAX_CHANNELS  22 
+
+
 
 
 //------------Begin Read PTP File--------Open Dialog-------------
@@ -390,7 +415,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 		GLfloat timePlus1 = ListOfPTPData[i + 1].Time / TimeScala;
 		if (timePlus1 > 0)
 		{
-			if (DisplayProfil_1)
+			if (DisplayProfil_1 && DataProfil_1)
 			{
 				glLineWidth(10.0);
 				//Profil 1
@@ -402,7 +427,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_2)
+			if (DisplayProfil_2 && DataProfil_2)
 			{
 				//Profi	2
 				glBegin(GL_LINES);
@@ -412,7 +437,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_3)
+			if (DisplayProfil_3 && DataProfil_3)
 			{
 				//Profi	3
 				glBegin(GL_LINES);
@@ -422,7 +447,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_4)
+			if (DisplayProfil_4 && DataProfil_4)
 			{
 
 				//Profi	4
@@ -433,7 +458,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_5)
+			if (DisplayProfil_5 && DataProfil_5)
 			{
 				//Profi	5
 				glBegin(GL_LINES);
@@ -443,7 +468,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_6)
+			if (DisplayProfil_6  && DataProfil_6)
 			{
 				//Profi	6
 				glBegin(GL_LINES);
@@ -453,7 +478,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_7)
+			if (DisplayProfil_7 && DataProfil_7)
 			{
 				//Profi	7
 				glBegin(GL_LINES);
@@ -463,7 +488,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_8)
+			if (DisplayProfil_8 && DataProfil_8)
 			{
 				//Profi	8
 				glBegin(GL_LINES);
@@ -474,7 +499,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 
 			}
 
-			if (DisplayProfil_9)
+			if (DisplayProfil_9 && DataProfil_9)
 			{
 				//Profi	9
 				glBegin(GL_LINES);
@@ -484,7 +509,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_10)
+			if (DisplayProfil_10 && DataProfil_10)
 			{
 				//Profi	10
 				glBegin(GL_LINES);
@@ -494,7 +519,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_11)
+			if (DisplayProfil_11 && DataProfil_11)
 			{
 				//Profi	11
 				glBegin(GL_LINES);
@@ -504,7 +529,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_12)
+			if (DisplayProfil_12 && DataProfil_12)
 			{
 				//Profi	12
 				glBegin(GL_LINES);
@@ -514,7 +539,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_13)
+			if (DisplayProfil_13 && DataProfil_13)
 			{
 				//Profi	13
 				glBegin(GL_LINES);
@@ -524,7 +549,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_14)
+			if (DisplayProfil_14 && DataProfil_14)
 			{
 				//Profi	14
 				glBegin(GL_LINES);
@@ -534,7 +559,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_15)
+			if (DisplayProfil_15 && DataProfil_15)
 			{
 				//Profi	15
 				glBegin(GL_LINES);
@@ -544,7 +569,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_16)
+			if (DisplayProfil_16 && DataProfil_16)
 			{
 				//Profi	13
 				glBegin(GL_LINES);
@@ -554,7 +579,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_17)
+			if (DisplayProfil_17 && DataProfil_17)
 			{
 				//Profi	14
 				glBegin(GL_LINES);
@@ -564,7 +589,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_18)
+			if (DisplayProfil_18 && DataProfil_18)
 			{
 				//Profi	15
 				glBegin(GL_LINES);
@@ -574,7 +599,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_19)
+			if (DisplayProfil_19 && DataProfil_19)
 			{
 				//Profi	14
 				glBegin(GL_LINES);
@@ -584,7 +609,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_20)
+			if (DisplayProfil_20 && DataProfil_20)
 			{
 				//Profi	15
 				glBegin(GL_LINES);
@@ -594,7 +619,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				glEnd();
 			}
 
-			if (DisplayProfil_21)
+			if (DisplayProfil_21 && DataProfil_21)
 			{
 				//Profi	15
 				glBegin(GL_LINES);
@@ -879,6 +904,11 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 	
 }
 
+void initArryofPTP()
+{
+
+}
+
 
 INT ReadSensorFile_PTP( LPTSTR lpFile)
 {
@@ -890,7 +920,9 @@ INT ReadSensorFile_PTP( LPTSTR lpFile)
 	LONG      dLines = 0;
 	LPTSTR    lp, lpn;
 	FLOAT     f[MAX_CHANNELS + 1];
-
+	
+	
+	memset(ListOfPTPData, 0, sizeof(ListOfPTPData)); //Reset ListOfPTPData
 	err = _tfopen_s(&stream, lpFile, _T("r+t, ccs=UNICODE"));
 	_fgetts(buffer, sizeof(buffer) / sizeof(_TCHAR), stream);
 
@@ -921,6 +953,102 @@ INT ReadSensorFile_PTP( LPTSTR lpFile)
 						&ListOfPTPData[numLines].P7, &ListOfPTPData[numLines].P8, &ListOfPTPData[numLines].P9, &ListOfPTPData[numLines].P10, &ListOfPTPData[numLines].P11,
 						&ListOfPTPData[numLines].P12, &ListOfPTPData[numLines].P13, &ListOfPTPData[numLines].P14, &ListOfPTPData[numLines].P15, &ListOfPTPData[numLines].P16,
 						&ListOfPTPData[numLines].P17, &ListOfPTPData[numLines].P18, &ListOfPTPData[numLines].P19, &ListOfPTPData[numLines].P20, &ListOfPTPData[numLines].P21);
+					
+					GLfloat zero = 0.0;
+					if (ListOfPTPData[numLines].P1 > zero)
+					{
+						DataProfil_1 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P2 > zero)
+					{
+						DataProfil_2 = 1;
+					}
+					if (ListOfPTPData[numLines].P3 > zero)
+					{
+						DataProfil_3 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P4 > zero)
+					{
+						DataProfil_4 = 1;
+					}
+					if (ListOfPTPData[numLines].P5 > zero)
+					{
+						DataProfil_5 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P6 > zero)
+					{
+						DataProfil_6 = 1;
+					}
+					if (ListOfPTPData[numLines].P7 > zero)
+					{
+						DataProfil_7 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P8 > zero)
+					{
+						DataProfil_8 = 1;
+					}
+					if (ListOfPTPData[numLines].P9 > zero)
+					{
+						DataProfil_9 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P10 > zero)
+					{
+						DataProfil_10 = 1;
+					}
+					if (ListOfPTPData[numLines].P11 > zero)
+					{
+						DataProfil_11 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P12 > zero)
+					{
+						DataProfil_12 = 1;
+					}
+					if (ListOfPTPData[numLines].P13 > zero)
+					{
+						DataProfil_13 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P14 > zero)
+					{
+						DataProfil_14 = 1;
+					}
+					if (ListOfPTPData[numLines].P15 > zero)
+					{
+						DataProfil_15 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P16 > zero)
+					{
+						DataProfil_16 = 1;
+					}
+					if (ListOfPTPData[numLines].P17 > zero)
+					{
+						DataProfil_17 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P18 > zero)
+					{
+						DataProfil_18 = 1;
+					}
+					if (ListOfPTPData[numLines].P19 > zero)
+					{
+						DataProfil_19 = 1;
+					}
+
+					if (ListOfPTPData[numLines].P20 > zero)
+					{
+						DataProfil_20 = 1;
+					}
+					if (ListOfPTPData[numLines].P21 > zero)
+					{
+						DataProfil_21 = 1;
+					}
 
 					numLines++;
 					break;
@@ -1173,7 +1301,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"Background",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			770,         // x position 
+			800,         // x position 
 			10,         // y position 
 			100,        // Button width
 			50,        // Button height
@@ -1182,9 +1310,9 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
-		 hWndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+		/* hWndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			WS_CHILD | WS_VISIBLE, 880, 20, 1400,
-			50, Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+			50, Wnd, IDC_PROFILEDISTANCE, NULL, NULL);*/
 	}
 	break;
 
