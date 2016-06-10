@@ -387,219 +387,222 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	for (int i = 0; i < numLines; i++)
 	{
 		GLfloat time = ListOfPTPData[i].Time / TimeScala;
-		GLfloat timePlus1 = ListOfPTPData[i+1].Time / TimeScala;
-		if (DisplayProfil_1)
+		GLfloat timePlus1 = ListOfPTPData[i + 1].Time / TimeScala;
+		if (timePlus1 > 0)
 		{
-			glLineWidth(2.0);
-			//Profil 1
-			glLineWidth(1.0);
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 1.0f, 0.0f);
-			glVertex3f(time, ListOfPTPData[i].P1/ PScala, ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P1/ PScala, ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_1)
+			{
+				glLineWidth(10.0);
+				//Profil 1
+				//glLineWidth(1.0);
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 1.0f, 0.0f);
+				glVertex3f(time, ListOfPTPData[i].P1 / PScala, ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P1 / PScala, ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_2)
-		{
-			//Profi	2
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 1.0f, 0.4f);
-			glVertex3f(time, ListOfPTPData[i].P2 / PScala, 2 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / PScala, 2 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_2)
+			{
+				//Profi	2
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 1.0f, 0.4f);
+				glVertex3f(time, ListOfPTPData[i].P2 / PScala, 2 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / PScala, 2 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_3)
-		{
-			//Profi	3
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 0.7f, 0.0f);
-			glVertex3f(time, ListOfPTPData[i].P3 / PScala, 3 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / PScala, 3 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_3)
+			{
+				//Profi	3
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 0.7f, 0.0f);
+				glVertex3f(time, ListOfPTPData[i].P3 / PScala, 3 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / PScala, 3 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_4)
-		{
+			if (DisplayProfil_4)
+			{
 
-			//Profi	4
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 1.0f, 0.0f);
-			glVertex3f(time, ListOfPTPData[i].P4 / PScala, 4 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / PScala, 4 * ProfileDistance);
-			glEnd();
-		}
+				//Profi	4
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 1.0f, 0.0f);
+				glVertex3f(time, ListOfPTPData[i].P4 / PScala, 4 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / PScala, 4 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_5)
-		{
-			//Profi	5
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 0.0f, 4.0f);
-			glVertex3f(time, ListOfPTPData[i].P5 / PScala, 5 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / PScala, 5 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_5)
+			{
+				//Profi	5
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 0.0f, 4.0f);
+				glVertex3f(time, ListOfPTPData[i].P5 / PScala, 5 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / PScala, 5 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_6)
-		{
-			//Profi	6
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 0.0f, 7.0f);
-			glVertex3f(time, ListOfPTPData[i].P6 / PScala, 6 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / PScala, 6 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_6)
+			{
+				//Profi	6
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 0.0f, 7.0f);
+				glVertex3f(time, ListOfPTPData[i].P6 / PScala, 6 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / PScala, 6 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_7)
-		{
-			//Profi	7
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 0.0f, 0.0f);
-			glVertex3f(time, ListOfPTPData[i].P7 / PScala, 7 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / PScala, 7 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_7)
+			{
+				//Profi	7
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 0.0f, 0.0f);
+				glVertex3f(time, ListOfPTPData[i].P7 / PScala, 7 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / PScala, 7 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_8)
-		{
-			//Profi	8
-			glBegin(GL_LINES);
-			glColor3f(0.0f, 0.0f, 0.4f);
-			glVertex3f(time, ListOfPTPData[i].P8 / PScala, 8 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / PScala, 8 * ProfileDistance);
-			glEnd();
+			if (DisplayProfil_8)
+			{
+				//Profi	8
+				glBegin(GL_LINES);
+				glColor3f(0.0f, 0.0f, 0.4f);
+				glVertex3f(time, ListOfPTPData[i].P8 / PScala, 8 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / PScala, 8 * ProfileDistance);
+				glEnd();
 
-		}
+			}
 
-		if (DisplayProfil_9)
-		{
-			//Profi	9
-			glBegin(GL_LINES);
-			glColor3f(0.0f, 0.0f, 0.7f);
-			glVertex3f(time, ListOfPTPData[i].P9 / PScala, 9 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P9 / PScala, 9 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_9)
+			{
+				//Profi	9
+				glBegin(GL_LINES);
+				glColor3f(0.0f, 0.0f, 0.7f);
+				glVertex3f(time, ListOfPTPData[i].P9 / PScala, 9 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P9 / PScala, 9 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_10)
-		{
-			//Profi	10
-			glBegin(GL_LINES);
-			glColor3f(0.0f, 0.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P10 / PScala, 10 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P10 / PScala, 10 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_10)
+			{
+				//Profi	10
+				glBegin(GL_LINES);
+				glColor3f(0.0f, 0.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P10 / PScala, 10 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P10 / PScala, 10 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_11)
-		{
-			//Profi	11
-			glBegin(GL_LINES);
-			glColor3f(0.0f, 0.4f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P11 / PScala, 11 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P11 / PScala, 11 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_11)
+			{
+				//Profi	11
+				glBegin(GL_LINES);
+				glColor3f(0.0f, 0.4f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P11 / PScala, 11 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P11 / PScala, 11 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_12)
-		{
-			//Profi	12
-			glBegin(GL_LINES);
-			glColor3f(0.0f, 0.7f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P12 / PScala, 12 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P12 / PScala, 12 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_12)
+			{
+				//Profi	12
+				glBegin(GL_LINES);
+				glColor3f(0.0f, 0.7f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P12 / PScala, 12 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P12 / PScala, 12 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_13)
-		{
-			//Profi	13
-			glBegin(GL_LINES);
-			glColor3f(0.4f, 1.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P13 / PScala, 13 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P13 / PScala, 13 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_13)
+			{
+				//Profi	13
+				glBegin(GL_LINES);
+				glColor3f(0.4f, 1.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P13 / PScala, 13 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P13 / PScala, 13 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_14)
-		{
-			//Profi	14
-			glBegin(GL_LINES);
-			glColor3f(0.7f, 1.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P14 / PScala, 14 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P14 / PScala, 14 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_14)
+			{
+				//Profi	14
+				glBegin(GL_LINES);
+				glColor3f(0.7f, 1.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P14 / PScala, 14 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P14 / PScala, 14 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_15)
-		{
-			//Profi	15
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 1.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P15 / PScala, 15 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P15 / PScala, 15 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_15)
+			{
+				//Profi	15
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 1.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P15 / PScala, 15 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P15 / PScala, 15 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_16)
-		{
-			//Profi	13
-			glBegin(GL_LINES);
-			glColor3f(0.4f, 1.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P16 / PScala, 16 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P16 / PScala, 16 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_16)
+			{
+				//Profi	13
+				glBegin(GL_LINES);
+				glColor3f(0.4f, 1.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P16 / PScala, 16 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P16 / PScala, 16 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_17)
-		{
-			//Profi	14
-			glBegin(GL_LINES);
-			glColor3f(0.7f, 1.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P17 / PScala, 17 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P17 / PScala, 17 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_17)
+			{
+				//Profi	14
+				glBegin(GL_LINES);
+				glColor3f(0.7f, 1.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P17 / PScala, 17 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P17 / PScala, 17 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_18)
-		{
-			//Profi	15
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 1.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P18 / PScala, 18 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P18 / PScala, 18 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_18)
+			{
+				//Profi	15
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 1.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P18 / PScala, 18 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P18 / PScala, 18 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_19)
-		{
-			//Profi	14
-			glBegin(GL_LINES);
-			glColor3f(0.7f, 1.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P19 / PScala, 19 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P19 / PScala, 19 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_19)
+			{
+				//Profi	14
+				glBegin(GL_LINES);
+				glColor3f(0.7f, 1.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P19 / PScala, 19 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P19 / PScala, 19 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_20)
-		{
-			//Profi	15
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 1.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P20, 20 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P20, 20 * ProfileDistance);
-			glEnd();
-		}
+			if (DisplayProfil_20)
+			{
+				//Profi	15
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 1.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P20, 20 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P20, 20 * ProfileDistance);
+				glEnd();
+			}
 
-		if (DisplayProfil_21)
-		{
-			//Profi	15
-			glBegin(GL_LINES);
-			glColor3f(1.0f, 1.0f, 1.0f);
-			glVertex3f(time, ListOfPTPData[i].P21, 21 * ProfileDistance);
-			glVertex3f(timePlus1, ListOfPTPData[i + 1].P21, 21 * ProfileDistance);
-			glEnd();
+			if (DisplayProfil_21)
+			{
+				//Profi	15
+				glBegin(GL_LINES);
+				glColor3f(1.0f, 1.0f, 1.0f);
+				glVertex3f(time, ListOfPTPData[i].P21, 21 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P21, 21 * ProfileDistance);
+				glEnd();
+			}
 		}
 	}
 	glPopMatrix(); 													// Don't forget to pop the Matrix
