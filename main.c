@@ -144,8 +144,8 @@ APP SPECIFIC INTERNAL CONSTANTS
 #define IDC_BUTTONPLUS 50								// Button Increment 
 #define IDC_BUTTONMINUS 51								// Button Decrement 
 #define IDC_PROFILEDISTANCE 52							// EDITBUTTON PROFILEDISTANCE 
-#define IDC_PROFILEDISTANCE_PLUS 53							// EDITBUTTON PROFILEDISTANCE Increse 
-#define IDC_PROFILEDISTANCE_MINUS 54							// EDITBUTTON PROFILEDISTANCE decrese
+#define IDC_PROFILEDISTANCE_PLUS 53						// EDITBUTTON PROFILEDISTANCE Increse 
+#define IDC_PROFILEDISTANCE_MINUS 54					// EDITBUTTON PROFILEDISTANCE decrese
 
 #define IDC_PROFILE_1_DISPLAY 301							// DISPLAY PROFILE 1
 #define IDC_PROFILE_2_DISPLAY 302							// DISPLAY PROFILE 2
@@ -290,7 +290,8 @@ static HGLRC InitGL(HWND Wnd) {
 			wglMakeCurrent(ourWindowHandleToDeviceContext, ourOpenGLRC); // Make our render context current
 			glEnable(GL_TEXTURE_2D);								// Enable Texture Mapping
 			glShadeModel(GL_SMOOTH);								// Enable Smooth Shading
-			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);					// Black Background
+		    glClearColor(1.0, 1.0, 1.0, 1.0);						// Paint scene to white
+			//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);					// Black Background
 			glClearDepth(1.0f);										// Depth Buffer Setup
 			glEnable(GL_DEPTH_TEST);								// Enables Depth Testing
 			glDepthFunc(GL_LEQUAL);									// The Type Of Depth Testing To Do
@@ -345,7 +346,6 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	//if ((db == 0) || (db->glTexture == 0)) return;					// Cant draw .. no render context
 	//wglMakeCurrent(Dc, db->Rc);										// Make our render context current
 
-	//glClearColor(1.0, 1.0, 1.0, 1.0);								// Paint scene to white
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);				// Clear The Screen And The Depth Buffer
 	glPushMatrix();													// Push matrix before calling
 	glMatrixMode(GL_MODELVIEW);										//select the model view matrix.
@@ -666,7 +666,8 @@ GLuint BMP2GLTexture(TCHAR* fileName, HWND Wnd, GLDATABASE* db) {
 
 void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
 {
-	glColor3f(0.0, 1.0, 0.0); // Green for x axis
+	//glColor3f(0.0, 1.0, 0.0); // Green for x axis
+	glColor3f(0.0, 0.0, 0.0); // Green for x axis
 	glLineWidth(LineWidth);
 	glBegin(GL_LINES);
 	glVertex3f(minLimit, 0, 0);
@@ -697,7 +698,8 @@ void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 
 void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
 {
-	glColor3f(1.0, 0.0, 0.0); // Red for y axis
+	//glColor3f(1.0, 0.0, 0.0); // Red for y axis
+	glColor3f(0.0, 0.0, 0.0);
 	glLineWidth(LineWidth);
 	glBegin(GL_LINES);
 	glVertex3f(0, minLimit, 0);
@@ -728,7 +730,8 @@ void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 
 void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
 {
-	glColor3f(0.0, 0.0, 1.0); // Blue for z axis
+	//glColor3f(0.0, 0.0, 1.0); // Blue for z axis
+	glColor3f(0.0, 0.0, 0.0);
 	glLineWidth(LineWidth);
 	glBegin(GL_LINES);
 	glVertex3f(0, 0, minLimit);
@@ -809,6 +812,8 @@ int DrawAxis(BOOL draw, GLfloat MaxLimit)
 		// The Axis won't be draw
 	}
 }
+
+
 int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 {
 	if (draw)
@@ -870,6 +875,8 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 	}
 	
 }
+
+
 INT ReadSensorFile_PTP( LPTSTR lpFile)
 {
 	FILE      *stream;
@@ -926,7 +933,6 @@ INT ReadSensorFile_PTP( LPTSTR lpFile)
 int ReadFromFile()
 {
 	numLines = 1000;
-	//get the 30 first value
 	for (int i = 0; i < numLines; i++)
 	{
 		ListOfPTPData[i].Time = i;
@@ -945,68 +951,6 @@ int ReadFromFile()
 		ListOfPTPData[i].P13 = i;
 		ListOfPTPData[i].P14 = i;
 	}
-
-	////get the 20 second value
-	//int j;
-	//for (int i = numLines - 70; i < numLines-51; i++)
-	//{
-	//	j = 5;
-	//	ListOfPTPData[i].Time = i-j;
-	//	ListOfPTPData[i].P1 = i-j;
-	//	ListOfPTPData[i].P2 = i / 2 -j;
-	//	ListOfPTPData[i].P3 = i / 3 - j;
-	//	ListOfPTPData[i].P4 = i / 4 - j;
-	//	ListOfPTPData[i].P5 = i * 2 - j;
-	//	ListOfPTPData[i].P6 = i % 9 - j;
-	//	ListOfPTPData[i].P7 = i - 2 - j;
-	//	ListOfPTPData[i].P8 = i - j;
-	//	ListOfPTPData[i].P9 = i - j;
-	//	ListOfPTPData[i].P10 = i - j;
-	//	ListOfPTPData[i].P11 = i - j;
-	//	ListOfPTPData[i].P12 = i - j;
-	//	ListOfPTPData[i].P13 = i - j;
-	//	ListOfPTPData[i].P14 = i - j;
-	//}
-	////get the 30 third value
-	//for (int i = numLines - 51; i < numLines - 71; i++)
-	//{
-	//	ListOfPTPData[i].Time = i;
-	//	ListOfPTPData[i].P1 = i;
-	//	ListOfPTPData[i].P2 = i / 2;
-	//	ListOfPTPData[i].P3 = i / 3;
-	//	ListOfPTPData[i].P4 = i / 4;
-	//	ListOfPTPData[i].P5 = i * 2;
-	//	ListOfPTPData[i].P6 = i % 9;
-	//	ListOfPTPData[i].P7 = i - 2;
-	//	ListOfPTPData[i].P8 = i;
-	//	ListOfPTPData[i].P9 = i;
-	//	ListOfPTPData[i].P10 = i;
-	//	ListOfPTPData[i].P11 = i;
-	//	ListOfPTPData[i].P12 = i;
-	//	ListOfPTPData[i].P13 = i;
-	//	ListOfPTPData[i].P14 = i;
-	//}
-	////get the 30 third value
-	//int k;
-	//for (int i = numLines - 71; i < numLines; i++)
-	//{
-	//	k = 20;
-	//	ListOfPTPData[i].Time = i - k;
-	//	ListOfPTPData[i].P1 = i - k;
-	//	ListOfPTPData[i].P2 = i / 2 - k;
-	//	ListOfPTPData[i].P3 = i / 3 - k;
-	//	ListOfPTPData[i].P4 = i / 4 - k;
-	//	ListOfPTPData[i].P5 = i * 2 - k;
-	//	ListOfPTPData[i].P6 = i % 9 - k;
-	//	ListOfPTPData[i].P7 = i - 2 - k;
-	//	ListOfPTPData[i].P8 = i - k;
-	//	ListOfPTPData[i].P9 = i - k;
-	//	ListOfPTPData[i].P10 = i - k;
-	//	ListOfPTPData[i].P11 = i - k;
-	//	ListOfPTPData[i].P12 = i - k;
-	//	ListOfPTPData[i].P13 = i - k;
-	//	ListOfPTPData[i].P14 = i - k;
-	//}
 	return 0;
 }
 /*---------------------------------------------------------------------------
@@ -1019,21 +963,32 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 																//  First manually build a menu for a window
 		HMENU SubMenu, Menu;
-		Menu = CreateMenu();								// Create a menu and populate it
+		Menu = CreateMenu();									// Create a menu and populate it
+		
+		//create menu File
 		SubMenu = CreatePopupMenu();
-		//AppendMenu(SubMenu, MF_STRING, IDC_BMPLOAD, _T("&Load Bitmap"));
-		//AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(SubMenu, MF_STRING, IDC_PTPLOAD, _T("&Load PTP"));
 		AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(SubMenu, MF_STRING, IDC_EXIT, _T("E&xit"));
 		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&File"));
+
+		//create menu setup
 		SubMenu = CreatePopupMenu();
+		AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTART, _T("&Coordinates"));
+		AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
+		AppendMenu(SubMenu, MF_STRING, IDC_EXIT, _T("&Background"));
+		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Setup"));
+		
+
+		//AppendMenu(SubMenu, MF_STRING, IDC_BMPLOAD, _T("&Load Bitmap"));
+		//AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
 		//AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTART, _T("&Start Timer"));
 		//AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTOP, _T("Stop &Timer"));
 		//AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Timer"));
 		//SubMenu = CreatePopupMenu();
 		/*AppendMenu(SubMenu, MF_STRING, 301, _T("&Vectorize"));
 		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Process"));*/
+
 		SetMenu(Wnd, Menu);									// Set the menu to window
 
 															// Make a data structure, initialize it and attach to Wnd
@@ -1046,6 +1001,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 		SetProp(Wnd, DATABASE_PROPERTY, (HANDLE)db);		// Set the database structure to a property on window
 		ReSizeGLScene(Wnd);									// Rescale the OpenGL window
+
+															//  Secondly manually build the tools button for a window
 
 		HWND hwndButton = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
@@ -1226,7 +1183,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			WS_CHILD | WS_VISIBLE, 880, 20, 1400,
 			50, Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
 	}
-					break;
+	break;
+
 	case WM_DESTROY: {											// WM_DESTROY MESSAGE
 																// We need to do some cleanups as program is going to exit	
 		wglMakeCurrent(NULL, NULL);							// Make the rendering context not current 
@@ -1239,7 +1197,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		}
 		PostQuitMessage(0);									// Post quit message
 	}
-					 break;
+	break;
+
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case IDC_BMPLOAD: {                                 // LOAD BITMAP COMMAND
@@ -1261,7 +1220,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 				}
 			}
 		}
-						  break;
+		break;
 		case IDC_PTPLOAD: {                                 // LOAD PTP-File COMMAND
 			TCHAR FileName[256];
 			int i = OpenFileDialog(&FileName[0], _countof(FileName),
@@ -1273,7 +1232,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 				InvalidateRect(Wnd, 0, TRUE);	// Force redraw of window
 			}
 		}
-						  break;
+		break;
 		case IDC_EXIT:										// EXIT COMMAND
 			PostMessage(Wnd, WM_CLOSE, 0, 0);				// Post close message 
 			break;
@@ -1283,7 +1242,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 				100,									// 100 ms interval 
 				0);										// timer callback null
 		}
-							 break;
+		break;
 		case IDC_TIMERSTOP: {								// Menu item: Timer-->Stop timer
 			KillTimer(Wnd, 1);							// Kill the timer
 		}
