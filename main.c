@@ -30,6 +30,7 @@ convert this code to those formats.
 #include <stdio.h>
 #include <strsafe.h>
 
+#define  argsused  warning(disable:4100)
 
 #define SIZE_OF_PTP 6000
 // This is the lazy adding libraries via #pragma rather than in linker includes
@@ -193,6 +194,7 @@ APP SPECIFIC INTERNAL CONSTANTS
 DWORD g_BytesTransferred = 0;
 VOID CALLBACK FileIOCompletionRoutine(__in  DWORD dwErrorCode, __in  DWORD dwNumberOfBytesTransfered,	__in  LPOVERLAPPED lpOverlapped);
 
+#pragma argsused
 VOID CALLBACK FileIOCompletionRoutine(__in  DWORD dwErrorCode, __in  DWORD dwNumberOfBytesTransfered,	__in  LPOVERLAPPED lpOverlapped)
 {
 	_tprintf(TEXT("Error code:\t%x\n"), dwErrorCode);
@@ -200,6 +202,7 @@ VOID CALLBACK FileIOCompletionRoutine(__in  DWORD dwErrorCode, __in  DWORD dwNum
 	g_BytesTransferred = dwNumberOfBytesTransfered;
 }
 
+#pragma argsused
 VOID CALLBACK readComplete(DWORD err, DWORD bytes, LPOVERLAPPED ovlp)
 {
 }
@@ -394,7 +397,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	// Draw Axis x, y and z
 	drawAxis_X(minLimit_X, maxLimit_X, LineWidth_X, 1.0);
 	drawAxis_Y(minLimit_Y, maxLimit_Y, LineWidth_Y, 1.0);
-	drawAxis_Z(minLimit_Z, maxLimit_Z, LineWidth_Z, 0.1);
+	drawAxis_Z( minLimit_Z, maxLimit_Z, LineWidth_Z, (GLfloat)0.1);
 	
 	//DrawAxis(TRUE, 50.0f);
 	//DrawBackGround(FALSE,20.0f);
@@ -403,8 +406,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	
 	//ReadFromFile();
 	//ProfileDistance = 0.2f;
-	GLfloat Tempi = 0.1f;
-	GLfloat Tempi1 = 0.1f;
+//	GLfloat Tempi = 0.1f;
+//	GLfloat Tempi1 = 0.1f;
 
 	GLfloat TimeScala = 10;
 	GLfloat PScala = 10;
@@ -716,8 +719,8 @@ void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 			{
 				glLineWidth(1.0);
 				glBegin(GL_LINES);  //X axis
-				glVertex3f(unit_, -0.2, 0.0);
-				glVertex3f(unit_, 0.2, 0.0);
+				glVertex3f(unit_, (GLfloat)-0.2, (GLfloat)0.0);
+				glVertex3f(unit_, (GLfloat)0.2, (GLfloat)0.0);
 				glEnd();
 			}
 		}
@@ -748,8 +751,8 @@ void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 			{
 				glLineWidth(1.0);
 				glBegin(GL_LINES);  //Y axis
-				glVertex3f(-0.2, unit_, 0.0);
-				glVertex3f(0.2, unit_, 0.0);
+				glVertex3f((GLfloat)-0.2, unit_, 0.0);
+				glVertex3f((GLfloat)0.2, unit_, 0.0);
 				glEnd();
 			}
 		}
@@ -770,8 +773,8 @@ void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	{
 		glLineWidth(3.0);
 		glBegin(GL_LINES);  //scalability
-		glVertex3f(0.0, -0.2, u);
-		glVertex3f(0.0, 0.2, u);
+		glVertex3f( 0.0, (GLfloat)-0.2, (GLfloat)u);
+		glVertex3f( 0.0, (GLfloat)0.2, (GLfloat)u);
 		glEnd();
 
 		if (DisplayUnit_Z)
@@ -780,8 +783,8 @@ void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 			{
 				glLineWidth(1.0);
 				glBegin(GL_LINES);  //Z axis
-				glVertex3f(0.0, -0.2, unit_);
-				glVertex3f(0.0, 0.2, unit_);
+				glVertex3f( 0.0, (GLfloat)-0.2, unit_);
+				glVertex3f( 0.0, (GLfloat)0.2, unit_);
 				glEnd();
 			}
 		}
@@ -805,16 +808,16 @@ int DrawAxis(BOOL draw, GLfloat MaxLimit)
 		{
 			glLineWidth(3.0);
 			glBegin(GL_LINES);  //X axis
-			glVertex3f(u, -0.1, 0.0);
-			glVertex3f(u, 0.1, 0.0);
+			glVertex3f(u, (GLfloat)-0.1, 0.0);
+			glVertex3f(u, (GLfloat)0.1, 0.0);
 			glEnd();
 
 			for (GLfloat unit = 0; unit <= 10; unit += 0.1)
 			{
 				glLineWidth(1.0);
 				glBegin(GL_LINES);  //X axis
-				glVertex3f(u + unit, -0.07, 0.0);
-				glVertex3f(u + unit, 0.07, 0.0);
+				glVertex3f(u + unit, (GLfloat)-0.07, 0.0);
+				glVertex3f(u + unit, (GLfloat)0.07, 0.0);
 				glEnd();
 			}
 		}
@@ -848,7 +851,7 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 	{
 		GLUquadricObj *quadric;
 		quadric = gluNewQuadric();
-		gluSphere(quadric, 0.2, 0.2, 0.2);
+		gluSphere(quadric, (GLint)0.2, (GLint)0.2, (GLint)0.2);
 
 		//glBegin(GL_QUADS);
 		//glColor3f(0.2f, 1.0f, 0.5f);
@@ -901,7 +904,7 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 	{
 		// Background Environment no draw
 	}
-	
+  return 0;	
 }
 
 void initArryofPTP()
@@ -916,10 +919,10 @@ INT ReadSensorFile_PTP( LPTSTR lpFile)
 	errno_t   err;
 	fpos_t    pos;
 	_TCHAR    buffer[6 * MAX_PATH] = { 0 };
-	INT       i, j;
-	LONG      dLines = 0;
-	LPTSTR    lp, lpn;
-	FLOAT     f[MAX_CHANNELS + 1];
+	INT       i; //,j;
+//	LONG      dLines = 0;
+//	LPTSTR    lp, lpn;
+//	FLOAT     f[MAX_CHANNELS + 1];
 	
 	
 	memset(ListOfPTPData, 0, sizeof(ListOfPTPData)); //Reset ListOfPTPData
@@ -1066,21 +1069,21 @@ int ReadFromFile()
 	numLines = 1000;
 	for (int i = 0; i < numLines; i++)
 	{
-		ListOfPTPData[i].Time = i;
-		ListOfPTPData[i].P1 = i;
-		ListOfPTPData[i].P2 = i/2;
-		ListOfPTPData[i].P3 = i/3;
-		ListOfPTPData[i].P4 = i/4;
-		ListOfPTPData[i].P5 = i*2;
-		ListOfPTPData[i].P6 = i%9;
-		ListOfPTPData[i].P7 = i-2;
-		ListOfPTPData[i].P8 = i;
-		ListOfPTPData[i].P9 = i;
-		ListOfPTPData[i].P10 = i;
-		ListOfPTPData[i].P11 = i;
-		ListOfPTPData[i].P12 = i;
-		ListOfPTPData[i].P13 = i;
-		ListOfPTPData[i].P14 = i;
+		ListOfPTPData[i].Time = (GLfloat)i;
+		ListOfPTPData[i].P1 = (GLfloat)i;
+		ListOfPTPData[i].P2 = (GLfloat)i/2;
+		ListOfPTPData[i].P3 = (GLfloat)i/3;
+		ListOfPTPData[i].P4 = (GLfloat)i/4;
+		ListOfPTPData[i].P5 = (GLfloat)i*2;
+		ListOfPTPData[i].P6 = (GLfloat)(i%9);
+		ListOfPTPData[i].P7 = (GLfloat)i-2;
+		ListOfPTPData[i].P8 = (GLfloat)i;
+		ListOfPTPData[i].P9 = (GLfloat)i;
+		ListOfPTPData[i].P10 = (GLfloat)i;
+		ListOfPTPData[i].P11 = (GLfloat)i;
+		ListOfPTPData[i].P12 = (GLfloat)i;
+		ListOfPTPData[i].P13 = (GLfloat)i;
+		ListOfPTPData[i].P14 = (GLfloat)i;
 	}
 	return 0;
 }
@@ -1091,7 +1094,20 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 	switch (Msg) {
 	case WM_CREATE: {											// WM_CREATE MESSAGE
-
+    HWND hwndButton;	  
+		HWND hwndButtonMinus;	  
+		HWND hwndButtonProfileDistancePlus;	  
+		HWND hwndButtonProfileDistanceMinus; 	  
+		HWND hwndButtonProfile1Display; 	  
+		HWND hwndButtonProfile2Display; 
+		HWND hwndButtonProfile3Display;
+		HWND hwndButtonProfile4Display;
+		HWND hwndButtonProfile5Display;
+		HWND hwndButtonProfile6Display;
+		HWND hwndButtonProfile7Display;
+		HWND hwndButtonProfile8Display;
+		HWND hwndButtonProfile9Display; 
+		HWND hwndButtonBackGround; 
 																//  First manually build a menu for a window
 		HMENU SubMenu, Menu;
 		Menu = CreateMenu();									// Create a menu and populate it
@@ -1135,7 +1151,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 															//  Secondly manually build the tools button for a window
 
-		HWND hwndButton = CreateWindow(
+		hwndButton = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"PLUS",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1144,11 +1160,11 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			100,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_BUTTONPLUS,       // No menu.
+  		(HMENU)(int)IDC_BUTTONPLUS,
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
-		HWND hwndButtonMinus = CreateWindow(
+		hwndButtonMinus = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"MINUS",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1157,37 +1173,35 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			100,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_BUTTONMINUS,       // No menu.
+ 		 (HMENU)(int)IDC_BUTTONMINUS,
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
-		HWND hwndButtonProfileDistancePlus = CreateWindow(
+		hwndButtonProfileDistancePlus = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
-			L"+ P-Distance",      // Button text 
+			L"+ Distance",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
 			220,         // x position 
 			10,         // y position 
 			100,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILEDISTANCE_PLUS,       // No menu.
+			(HMENU)(int)IDC_PROFILEDISTANCE_PLUS,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-
-		HWND hwndButtonProfileDistanceMinus = CreateWindow(
+		hwndButtonProfileDistanceMinus = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
-			L"MINUS",      // Button text 
+			L"- Distance",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
 			330,         // x position 
 			10,         // y position 
 			100,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILEDISTANCE_MINUS,       // No menu.
+			(HMENU)(int)IDC_PROFILEDISTANCE_MINUS,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-
-		HWND hwndButtonProfile1Display = CreateWindow(
+		hwndButtonProfile1Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P1",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1196,10 +1210,10 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			30,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILE_1_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_PROFILE_1_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-		HWND hwndButtonProfile2Display = CreateWindow(
+		hwndButtonProfile2Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P2",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1208,11 +1222,10 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			30,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILE_2_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_PROFILE_2_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-
-		HWND hwndButtonProfile3Display = CreateWindow(
+		hwndButtonProfile3Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P3",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1221,10 +1234,10 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			30,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILE_3_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_PROFILE_3_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-		HWND hwndButtonProfile4Display = CreateWindow(
+		hwndButtonProfile4Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P4",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1233,10 +1246,10 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			30,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILE_4_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_PROFILE_4_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-		HWND hwndButtonProfile5Display = CreateWindow(
+		hwndButtonProfile5Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P5",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1245,10 +1258,10 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			30,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILE_5_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_PROFILE_5_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-		HWND hwndButtonProfile6Display = CreateWindow(
+		hwndButtonProfile6Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P6",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1257,10 +1270,10 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			30,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILE_6_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_PROFILE_6_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-		HWND hwndButtonProfile7Display = CreateWindow(
+		hwndButtonProfile7Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P7",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1269,10 +1282,10 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			30,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILE_7_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_PROFILE_7_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-		HWND hwndButtonProfile8Display = CreateWindow(
+		hwndButtonProfile8Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P8",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1281,10 +1294,10 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			30,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILE_8_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_PROFILE_8_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
-		HWND hwndButtonProfile9Display = CreateWindow(
+		hwndButtonProfile9Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P9",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1293,11 +1306,11 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			30,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_PROFILE_9_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_PROFILE_9_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
-		HWND hwndButtonBackGround = CreateWindow(
+		hwndButtonBackGround = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"Background",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
@@ -1306,13 +1319,37 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			100,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			IDC_BACKGROUND_DISPLAY,       // No menu.
+			(HMENU)(int)IDC_BACKGROUND_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
-		/* hWndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			WS_CHILD | WS_VISIBLE, 880, 20, 1400,
-			50, Wnd, IDC_PROFILEDISTANCE, NULL, NULL);*/
+		 hWndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT | WS_BORDER,
+			 910,  10, //x,y positin 
+			 100, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndEdit, TEXT("0.0"));
+
+		 static HWND hwnd_st_u, hwnd_ed_u;
+		 int x, w, y, h;
+		 y = 10; h = 20;
+		 x = 10; w = 50;
+		 hwnd_st_u = CreateWindowEx("static", "ST_U",
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+			 910, 40, w, h,
+			 Wnd, (HMENU)(501),
+			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE), NULL);
+
+		 SetWindowText(hwnd_st_u, "User:");
+
+		 x += w; w = 60;
+		 hwnd_ed_u = CreateWindow("edit", "",
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP
+			 | ES_LEFT | WS_BORDER,
+			 910, 70, w, h,
+			 Wnd, (HMENU)(502),
+			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE), NULL);
+		 SetWindowText(hwnd_ed_u, "Bill");
 	}
 	break;
 
@@ -1605,7 +1642,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 	 TCHAR buff2[BUF_SIZE] = { 'a','v' };
 	 BOOL bResult = FALSE;
 
-	 char inBuffer[BUF_SIZE];
+//	 TCHAR inBuffer[BUF_SIZE];
 	 DWORD nBytesToRead = BUF_SIZE;
 	 hout = CreateFile(FileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
@@ -1614,16 +1651,16 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		 
 	 }
 	 DWORD nRead;
-	 bResult=ReadFile(hout, buff2, &nBytesToRead, &nRead, NULL);
+	 bResult=ReadFile(hout, buff2, nBytesToRead, &nRead, NULL);
 
 
 	 if (bResult &&  nBytesToRead == 0)
 	 {
-		 DWORD text = buff2;
+//		 DWORD text = buff2;
 	 }
 	 else
 	 {
-		 DWORD text = buff2;
+//		 DWORD text = buff2;
 	 }
 
 	 CloseHandle(hout);
@@ -1641,15 +1678,15 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		 dwFileSize = GetFileSize(hFile, NULL);
 		 if (dwFileSize != 0xFFFFFFFF)
 		 {
-			 LPSTR pszFileText;
-			 pszFileText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1);
+			 LPTSTR pszFileText;
+			 pszFileText = (LPTSTR)GlobalAlloc(GPTR, dwFileSize + 1);
 			 if (pszFileText != NULL)
 			 {
-				 BYTE buffer[437];
+				 TCHAR buffer[437];
 				 DWORD dwBytesRead;
 				 BOOL bSuccess = ReadFile(hFile, &buffer, 436, &dwBytesRead, NULL);
-				 buffer[436] = "\0";
-				 if (SetWindowText(hEdit, &buffer))
+				 buffer[436] = 0; //"\0";
+				 if( SetWindowText(hEdit, buffer))
 					 bSuccess = TRUE; // It worked!
 
 				 if (!bSuccess)
@@ -1686,12 +1723,12 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 	 if (hFile != INVALID_HANDLE_VALUE)
 	 {
 		 DWORD dwFileSize;
-		 LPSTR pszFileText;
-		 LPSTR psHeader; //771 DWORD = 1542Bytes
+		 LPTSTR pszFileText;
+		 LPTSTR psHeader; //771 DWORD = 1542Bytes
 
 		 dwFileSize = GetFileSize(hFile, NULL);
-		 pszFileText = (char *)GlobalAlloc(GPTR, dwFileSize + 1);
-		 psHeader = (char *)GlobalAlloc(GPTR, 218);
+		 pszFileText = (TCHAR *)GlobalAlloc(GPTR, dwFileSize + 1);
+		 psHeader = (TCHAR *)GlobalAlloc(GPTR, 218);
 		 if (pszFileText != NULL)
 		 {
 			 DWORD dwRead;
@@ -1717,6 +1754,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 /* ------------------------------------------------------------------------
 The application entry point
 -----------------------------------------------------------------------*/
+#pragma argsused
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	MSG Msg;
 	RECT R;
