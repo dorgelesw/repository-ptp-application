@@ -47,16 +47,29 @@ GLfloat rotLy = 0.0f; // Translate screen by using the glulookAt function (up or
 GLfloat rotLz = 0.0f; // Translate screen by using the glulookAt function (zoom in or out)
 GLfloat minLimit_X = -1.0;
 GLfloat maxLimit_X = 6000.0;
+GLfloat Scala_X = 1.0;
 GLfloat minLimit_Y = -150.0;
 GLfloat maxLimit_Y = 1650.0;
+GLfloat Scala_Y = 1.0;
 GLfloat minLimit_Z = 0.0;
 GLfloat maxLimit_Z = 15.0;
+GLfloat Scala_Z = 1.0;
 GLfloat LineWidth_X = 2;
 GLfloat LineWidth_Y = 2;
 GLfloat LineWidth_Z = 2;
 GLfloat scalability_X = 10.0;
 GLfloat scalability_Y = 10.0;
 GLfloat scalability_Z = 1.0;
+
+HWND hWndEdit_XMin;
+HWND hWndEdit_XMax;
+HWND hWndEdit_XScala;
+HWND hWndEdit_YMin;
+HWND hWndEdit_YMax;
+HWND hWndEdit_YScala;
+HWND hWndEdit_ZMin;
+HWND hWndEdit_ZMax;
+HWND hWndEdit_ZScala;
 
 
 typedef struct
@@ -85,9 +98,8 @@ typedef struct
 	GLfloat P21;
 } PTPData;
 
-int ReadFromFile();
 int DrawBackGround(BOOL draw, GLfloat MaxLimit);
-int DrawAxis(BOOL draw, GLfloat MaxLimit);
+int DrawAxis(BOOL draw, GLfloat xMinLimit, GLfloat xMaxLimit, GLfloat yMinLimit, GLfloat yMaxLimit, GLfloat zMinLimit, GLfloat zMaxLimit);
 void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
 void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
 void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
@@ -95,6 +107,7 @@ void ReadPTPDataFromPTPFile(TCHAR* FileName);
 void ReadFilePTP(TCHAR* FileName);
 BOOL LoadFileAndRetrieveProfile(HWND hEdit, LPCTSTR pszFileName);
 INT ReadSensorFile_PTP(LPTSTR lpFile);
+void ReadKoordinaten();
 
 
 PTPData	 ListOfPTPData[SIZE_OF_PTP] = { 0 };
@@ -383,6 +396,7 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	gluLookAt(1.0, 2.0, 20.0,										// Camera position
 		0, 0, 0,													// Camera orientation
 		0, 1, 0);													// Camera direction	
+	ReadKoordinaten();
 
 	// Translates the screen left or right, 
 	// up or down or zoom in zoom out
@@ -395,9 +409,9 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	//glBindTexture(GL_TEXTURE_2D, db->glTexture);
 
 	// Draw Axis x, y and z
-	drawAxis_X(minLimit_X, maxLimit_X, LineWidth_X, 1.0);
-	drawAxis_Y(minLimit_Y, maxLimit_Y, LineWidth_Y, 1.0);
-	drawAxis_Z( minLimit_Z, maxLimit_Z, LineWidth_Z, (GLfloat)0.1);
+	drawAxis_X(minLimit_X, maxLimit_X, LineWidth_X, Scala_X);
+	drawAxis_Y(minLimit_Y, maxLimit_Y, LineWidth_Y, Scala_Y);
+	drawAxis_Z( minLimit_Z, maxLimit_Z, LineWidth_Z, Scala_Z);
 	
 	//DrawAxis(TRUE, 50.0f);
 	//DrawBackGround(FALSE,20.0f);
@@ -791,7 +805,7 @@ void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	}
 }
 
-int DrawAxis(BOOL draw, GLfloat MaxLimit)
+int DrawAxis(BOOL draw, GLfloat xMinLimit,GLfloat xMaxLimit, GLfloat yMinLimit,GLfloat yMaxLimit, GLfloat zMinLimit,GLfloat zMaxLimit)
 {
 	if (draw)  //  activate or deactive  axis drawing
 	{
@@ -799,12 +813,12 @@ int DrawAxis(BOOL draw, GLfloat MaxLimit)
 		glColor3f(1.0f, 0.0f, 0.0f);
 		glLineWidth(5.0);
 		glBegin(GL_LINES);  //X axis
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(MaxLimit, 0.0, 0.0);
+		glVertex3f(xMinLimit, 0.0, 0.0);
+		glVertex3f(xMaxLimit, 0.0, 0.0);
 		glEnd();
 
 		GLfloat a = 1;
-		for (GLfloat u = 0; u <= MaxLimit; u+=a)
+		for (GLfloat u = xMinLimit; u <= xMaxLimit; u+=a)
 		{
 			glLineWidth(3.0);
 			glBegin(GL_LINES);  //X axis
@@ -826,16 +840,16 @@ int DrawAxis(BOOL draw, GLfloat MaxLimit)
 		glColor3f(0.0f, 1.0f, 0.0f);
 		glLineWidth(5.0);
 		glBegin(GL_LINES);  //X axis
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(0.0, MaxLimit, 0.0);
+		glVertex3f(0.0, yMinLimit, 0.0);
+		glVertex3f(0.0, yMaxLimit, 0.0);
 		glEnd();
 
 		// L axe des Z
 		glColor3f(0.0f, 0.0f, 1.0f);
 		glLineWidth(5.0);
 		glBegin(GL_LINES);  //X axis
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(0.0, 0.0, MaxLimit);
+		glVertex3f(0.0, 0.0, zMinLimit);
+		glVertex3f(0.0, 0.0, zMaxLimit);
 		glEnd();
 	}
 	else
@@ -844,6 +858,94 @@ int DrawAxis(BOOL draw, GLfloat MaxLimit)
 	}
 }
 
+void ReadKoordinaten()
+{
+	/*GLfloat minLimit_X = -1.0;
+	GLfloat maxLimit_X = 6000.0;
+	GLfloat Scala_X = 1.0;
+	GLfloat minLimit_Y = -150.0;
+	GLfloat maxLimit_Y = 1650.0;
+	GLfloat Scala_Y = 1.0;
+	GLfloat minLimit_Z = 0.0;
+	GLfloat maxLimit_Z = 15.0;
+	GLfloat Scala_Z = 1.0;*/
+
+	char xmin_buffer[65];
+	char xmax_buffer[65];
+	char xScala_buffer[65];
+
+	char ymin_buffer[65];
+	char ymax_buffer[65];
+	char yScala_buffer[65];
+
+	char zmin_buffer[65];
+	char zmax_buffer[65];
+	char zScala_buffer[65];
+	
+
+	int xminlen = GetWindowTextLength(hWndEdit_XMin);
+	GetWindowText(hWndEdit_XMin, xmin_buffer, xminlen);
+	float xminwert= atof(xmin_buffer);
+	minLimit_X = (GLfloat)xminwert;
+
+	int xmaxlen = GetWindowTextLength(hWndEdit_XMax);
+	GetWindowText(hWndEdit_XMax, xmax_buffer, xmaxlen);
+	float xmaxwert = atof(xmax_buffer);
+	maxLimit_X = (GLfloat)xmaxwert;
+
+	int xScalaLen = GetWindowTextLength(hWndEdit_XScala);	
+	GetWindowText(hWndEdit_XScala, xScala_buffer, xScalaLen);
+	float xscalawert = atof(xScala_buffer);
+	Scala_X = (GLfloat)xscalawert;
+
+	int yminlen = GetWindowTextLength(hWndEdit_YMin);
+	GetWindowText(hWndEdit_YMin, ymin_buffer, yminlen);
+	float yminwert = atof(ymin_buffer);
+	minLimit_Y = (GLfloat)yminwert;
+
+	int ymaxlen = GetWindowTextLength(hWndEdit_YMax);
+	GetWindowText(hWndEdit_YMax, ymax_buffer, ymaxlen);
+	float ymaxwert = atof(ymax_buffer);
+	maxLimit_Y = (GLfloat)ymaxwert;
+
+	int yScalaLen = GetWindowTextLength(hWndEdit_YScala);
+	GetWindowText(hWndEdit_YScala, yScala_buffer, yScalaLen);
+	float yscalawert = atof(yScala_buffer);
+	Scala_Y = (GLfloat)yscalawert;
+
+
+	int zminlen = GetWindowTextLength(hWndEdit_ZMin);
+	GetWindowText(hWndEdit_ZMin, zmin_buffer, zminlen);
+	float zminwert = atof(zmin_buffer);
+	minLimit_Z = (GLfloat)zminwert;
+
+	int zmaxlen = GetWindowTextLength(hWndEdit_ZMax);
+	GetWindowText(hWndEdit_ZMax, zmax_buffer, zmaxlen);
+	float zmaxwert = atof(zmax_buffer);
+	maxLimit_Z = (GLfloat)zmaxwert;
+
+	int zScalaLen = GetWindowTextLength(hWndEdit_ZScala);
+	GetWindowText(hWndEdit_ZScala, zScala_buffer, zScalaLen);
+	float zscalawert = atof(zScala_buffer);
+	Scala_Z = (GLfloat)zscalawert;
+
+
+
+
+
+	//xmax = xmin;
+	/*GetWindowText(hWndEdit_XMax, xmax, 20);
+	GetWindowText(hWndEdit_XScala, xscala, 20);
+
+	GetWindowText(hWndEdit_YMin, ymin, 20);
+	GetWindowText(hWndEdit_YMax, ymax, 20);
+	GetWindowText(hWndEdit_YScala, yscala, 20);
+	*/
+	//GetWindowText(hWndEdit_ZMin, zmin, 20);
+
+	/*GetWindowText(hWndEdit_ZMax, zmax, 20);
+	GetWindowText(hWndEdit_ZScala, zscala, 20);*/
+}
 
 int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 {
@@ -852,30 +954,7 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 		GLUquadricObj *quadric;
 		quadric = gluNewQuadric();
 		gluSphere(quadric, (GLint)0.2, (GLint)0.2, (GLint)0.2);
-
-		//glBegin(GL_QUADS);
-		//glColor3f(0.2f, 1.0f, 0.5f);
-		//glVertex3f(0.0f, 0.0f, 0.0f);     // Green
-		//glVertex3f(MaxLimit, 0.0f, 0.0f);
-		//glVertex3f(MaxLimit, 0.0f, MaxLimit);
-		//glVertex3f(0.0f, 0.0f, MaxLimit);
-		//glEnd();
-
-		//glBegin(GL_QUADS);
-		//glColor3f(1.0f, 0.0f, 1.0f);
-		//glVertex3f(0.0f, 0.0f, 0.0f);     // Green
-		//glVertex3f(0.0f, 0.0f, MaxLimit);
-		//glVertex3f(0.0f, MaxLimit, MaxLimit);
-		//glVertex3f(0.0f, MaxLimit, 0.0f);
-		//glEnd();
-
-		//glBegin(GL_QUADS);
-		//glColor3f(1.0f, 1.0f, 0.0f);
-		//glVertex3f(0.0f, 0.0f, MaxLimit);     // Green
-		//glVertex3f(MaxLimit, 0.0f, 2.0f);
-		//glVertex3f(MaxLimit, MaxLimit, MaxLimit);
-		//glVertex3f(0.0f, MaxLimit, MaxLimit);
-
+				
 		glBegin(GL_QUADS);
 		glColor3f(0.2f, 1.0f, 0.5f);
 		glVertex3f(0.0f, 0.0f, 0.0f);     // Green
@@ -919,11 +998,7 @@ INT ReadSensorFile_PTP( LPTSTR lpFile)
 	errno_t   err;
 	fpos_t    pos;
 	_TCHAR    buffer[6 * MAX_PATH] = { 0 };
-	INT       i; //,j;
-//	LONG      dLines = 0;
-//	LPTSTR    lp, lpn;
-//	FLOAT     f[MAX_CHANNELS + 1];
-	
+	INT       i; 
 	
 	memset(ListOfPTPData, 0, sizeof(ListOfPTPData)); //Reset ListOfPTPData
 	err = _tfopen_s(&stream, lpFile, _T("r+t, ccs=UNICODE"));
@@ -1064,29 +1139,29 @@ INT ReadSensorFile_PTP( LPTSTR lpFile)
 	return 1;
 }
 
-int ReadFromFile()
-{
-	numLines = 1000;
-	for (int i = 0; i < numLines; i++)
-	{
-		ListOfPTPData[i].Time = (GLfloat)i;
-		ListOfPTPData[i].P1 = (GLfloat)i;
-		ListOfPTPData[i].P2 = (GLfloat)i/2;
-		ListOfPTPData[i].P3 = (GLfloat)i/3;
-		ListOfPTPData[i].P4 = (GLfloat)i/4;
-		ListOfPTPData[i].P5 = (GLfloat)i*2;
-		ListOfPTPData[i].P6 = (GLfloat)(i%9);
-		ListOfPTPData[i].P7 = (GLfloat)i-2;
-		ListOfPTPData[i].P8 = (GLfloat)i;
-		ListOfPTPData[i].P9 = (GLfloat)i;
-		ListOfPTPData[i].P10 = (GLfloat)i;
-		ListOfPTPData[i].P11 = (GLfloat)i;
-		ListOfPTPData[i].P12 = (GLfloat)i;
-		ListOfPTPData[i].P13 = (GLfloat)i;
-		ListOfPTPData[i].P14 = (GLfloat)i;
-	}
-	return 0;
-}
+//int ReadFromFile()
+//{
+//	numLines = 1000;
+//	for (int i = 0; i < numLines; i++)
+//	{
+//		ListOfPTPData[i].Time = (GLfloat)i;
+//		ListOfPTPData[i].P1 = (GLfloat)i;
+//		ListOfPTPData[i].P2 = (GLfloat)i/2;
+//		ListOfPTPData[i].P3 = (GLfloat)i/3;
+//		ListOfPTPData[i].P4 = (GLfloat)i/4;
+//		ListOfPTPData[i].P5 = (GLfloat)i*2;
+//		ListOfPTPData[i].P6 = (GLfloat)(i%9);
+//		ListOfPTPData[i].P7 = (GLfloat)i-2;
+//		ListOfPTPData[i].P8 = (GLfloat)i;
+//		ListOfPTPData[i].P9 = (GLfloat)i;
+//		ListOfPTPData[i].P10 = (GLfloat)i;
+//		ListOfPTPData[i].P11 = (GLfloat)i;
+//		ListOfPTPData[i].P12 = (GLfloat)i;
+//		ListOfPTPData[i].P13 = (GLfloat)i;
+//		ListOfPTPData[i].P14 = (GLfloat)i;
+//	}
+//	return 0;
+//}
 /*---------------------------------------------------------------------------
 Application handler.
 ---------------------------------------------------------------------------*/
@@ -1108,6 +1183,17 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		HWND hwndButtonProfile8Display;
 		HWND hwndButtonProfile9Display; 
 		HWND hwndButtonBackGround; 
+		
+
+		/*HWND hWndEdit_XMin;
+		HWND hWndEdit_XMax;
+		HWND hWndEdit_XScala;
+		HWND hWndEdit_YMin;
+		HWND hWndEdit_YMax;
+		HWND hWndEdit_YScala;
+		HWND hWndEdit_ZMin;
+		HWND hWndEdit_ZMax;
+		HWND hWndEdit_ZScala;*/
 																//  First manually build a menu for a window
 		HMENU SubMenu, Menu;
 		Menu = CreateMenu();									// Create a menu and populate it
@@ -1323,33 +1409,119 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
-		 hWndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT | WS_BORDER,
-			 910,  10, //x,y positin 
-			 100, 20,	//Width height
+		HWND hWndTitel = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_RIGHT | WS_BORDER,
+			910, 10, //x,y positin 
+			90, 20,	//Width height
+			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndTitel, TEXT("Description:"));
+
+		HWND hWndMinTxt = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_RIGHT | WS_BORDER,
+			910, 30, //x,y positin 
+			90, 20,	//Width height
+			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndMinTxt, TEXT("Min:"));
+
+		HWND hWndMaxTxt = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_RIGHT,
+			910, 50, //x,y positin 
+			90, 20,	//Width height
+			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndMaxTxt, TEXT("Max:"));
+
+		HWND hWndScalaTxt = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_RIGHT,
+			910, 70, //x,y positin 
+			90, 20,	//Width height
+			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndScalaTxt, TEXT("Scala:"));
+
+
+		HWND hWndLabek_X = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_CENTER,
+			1020, 10, //x,y positin 
+			70, 20,	//Width height
+			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndLabek_X, TEXT("X: Time"));
+
+		  hWndEdit_XMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT ,
+			 1020, 30, //x,y positin 
+			 70, 20,	//Width height
 			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit, TEXT("0.0"));
+		 SetWindowText(hWndEdit_XMin, TEXT("0.0"));
 
-		 static HWND hwnd_st_u, hwnd_ed_u;
-		 int x, w, y, h;
-		 y = 10; h = 20;
-		 x = 10; w = 50;
-		 hwnd_st_u = CreateWindowEx("static", "ST_U",
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-			 910, 40, w, h,
-			 Wnd, (HMENU)(501),
-			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE), NULL);
+		 hWndEdit_XMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			 1020, 50, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndEdit_XMax, TEXT("6000.0"));
 
-		 SetWindowText(hwnd_st_u, "User:");
+		 hWndEdit_XScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			 1020, 70, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndEdit_XScala, TEXT("10.0"));
 
-		 x += w; w = 60;
-		 hwnd_ed_u = CreateWindow("edit", "",
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP
-			 | ES_LEFT | WS_BORDER,
-			 910, 70, w, h,
-			 Wnd, (HMENU)(502),
-			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE), NULL);
-		 SetWindowText(hwnd_ed_u, "Bill");
+
+		 HWND hWndLabek_Y = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_CENTER,
+			 1100, 10, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndLabek_Y, TEXT("Y: Temp."));
+
+		 hWndEdit_YMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			 1100, 30, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndEdit_YMin, TEXT("-200.0"));
+
+		 hWndEdit_YMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			 1100, 50, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndEdit_YMax, TEXT("170.0"));
+
+		 hWndEdit_YScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			 1100, 70, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndEdit_YScala, TEXT("10.0"));
+
+		 HWND hWndLabek_Z = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			 1200, 10, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndLabek_Z, TEXT("Z: Profile"));
+
+		 hWndEdit_ZMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			 1200, 30, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndEdit_ZMin, TEXT("0.0"));
+
+		 hWndEdit_ZMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			 1200, 50, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndEdit_ZMax, TEXT("20.0"));
+
+		 hWndEdit_ZScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			 1200, 70, //x,y positin 
+			 70, 20,	//Width height
+			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+		 SetWindowText(hWndEdit_ZScala, TEXT("1.0"));
 	}
 	break;
 
