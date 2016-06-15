@@ -423,8 +423,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 //	GLfloat Tempi = 0.1f;
 //	GLfloat Tempi1 = 0.1f;
 
-	GLfloat TimeScala = 10;
-	GLfloat PScala = 10;
+	GLfloat TimeScala = Scala_X;
+	GLfloat PScala = Scala_Y;
 
 	for (int i = 0; i < numLines; i++)
 	{
@@ -884,48 +884,48 @@ void ReadKoordinaten()
 	
 
 	int xminlen = GetWindowTextLength(hWndEdit_XMin);
-	GetWindowText(hWndEdit_XMin, xmin_buffer, xminlen);
+	GetWindowTextA(hWndEdit_XMin, xmin_buffer, xminlen);
 	float xminwert= atof(xmin_buffer);
 	minLimit_X = (GLfloat)xminwert;
 
 	int xmaxlen = GetWindowTextLength(hWndEdit_XMax);
-	GetWindowText(hWndEdit_XMax, xmax_buffer, xmaxlen);
+	GetWindowTextA(hWndEdit_XMax, xmax_buffer, xmaxlen);
 	float xmaxwert = atof(xmax_buffer);
 	maxLimit_X = (GLfloat)xmaxwert;
 
 	int xScalaLen = GetWindowTextLength(hWndEdit_XScala);	
-	GetWindowText(hWndEdit_XScala, xScala_buffer, xScalaLen);
+	GetWindowTextA(hWndEdit_XScala, xScala_buffer, xScalaLen);
 	float xscalawert = atof(xScala_buffer);
 	Scala_X = (GLfloat)xscalawert;
 
 	int yminlen = GetWindowTextLength(hWndEdit_YMin);
-	GetWindowText(hWndEdit_YMin, ymin_buffer, yminlen);
+	GetWindowTextA(hWndEdit_YMin, ymin_buffer, yminlen);
 	float yminwert = atof(ymin_buffer);
 	minLimit_Y = (GLfloat)yminwert;
 
 	int ymaxlen = GetWindowTextLength(hWndEdit_YMax);
-	GetWindowText(hWndEdit_YMax, ymax_buffer, ymaxlen);
+	GetWindowTextA(hWndEdit_YMax, ymax_buffer, ymaxlen);
 	float ymaxwert = atof(ymax_buffer);
 	maxLimit_Y = (GLfloat)ymaxwert;
 
 	int yScalaLen = GetWindowTextLength(hWndEdit_YScala);
-	GetWindowText(hWndEdit_YScala, yScala_buffer, yScalaLen);
+	GetWindowTextA(hWndEdit_YScala, yScala_buffer, yScalaLen);
 	float yscalawert = atof(yScala_buffer);
 	Scala_Y = (GLfloat)yscalawert;
 
 
 	int zminlen = GetWindowTextLength(hWndEdit_ZMin);
-	GetWindowText(hWndEdit_ZMin, zmin_buffer, zminlen);
+	GetWindowTextA(hWndEdit_ZMin, zmin_buffer, zminlen);
 	float zminwert = atof(zmin_buffer);
 	minLimit_Z = (GLfloat)zminwert;
 
 	int zmaxlen = GetWindowTextLength(hWndEdit_ZMax);
-	GetWindowText(hWndEdit_ZMax, zmax_buffer, zmaxlen);
+	GetWindowTextA(hWndEdit_ZMax, zmax_buffer, zmaxlen);
 	float zmaxwert = atof(zmax_buffer);
 	maxLimit_Z = (GLfloat)zmaxwert;
 
 	int zScalaLen = GetWindowTextLength(hWndEdit_ZScala);
-	GetWindowText(hWndEdit_ZScala, zScala_buffer, zScalaLen);
+	GetWindowTextA(hWndEdit_ZScala, zScala_buffer, zScalaLen);
 	float zscalawert = atof(zScala_buffer);
 	Scala_Z = (GLfloat)zscalawert;
 
