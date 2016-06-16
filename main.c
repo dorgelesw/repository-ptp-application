@@ -1,6 +1,6 @@
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {						OPENGL APP 3D PTP VERSION 1.0					    }
-{       Writen by Gilles Tanko P7c SARL, Jaunde 2016.						}
+{       Writen by Gilles Tanko P7c SARL, June 2016.							}
 {	  	contact: info@p7c-sarl,com											}
 {																			}
 {       																	}
@@ -25,6 +25,8 @@ convert this code to those formats.
 #include <commctrl.h>		// Common controls dialogs unit
 #include <gl\gl.h>			// Header File For The OpenGL32 Library
 #include <gl\glu.h>			// Header File For The GLu32 Library
+#include <stdio.h>
+//#include <gl/glext.h>
 
 
 #include <stdio.h>
@@ -42,24 +44,26 @@ convert this code to those formats.
 GLfloat X = 0.0f; // Translate screen to x direction (left or right)
 GLfloat Y = 0.0f; // Translate screen to y direction (up or down)
 GLfloat Z = 0.0f; // Translate screen to z direction (zoom in or out)
+
 GLfloat rotLx = 0.0f; // Translate screen by using the glulookAt function (left or right)
 GLfloat rotLy = 0.0f; // Translate screen by using the glulookAt function (up or down)
 GLfloat rotLz = 0.0f; // Translate screen by using the glulookAt function (zoom in or out)
-GLfloat minLimit_X = -1.0;
+
+GLfloat minLimit_X = 0.0;
 GLfloat maxLimit_X = 6000.0;
-GLfloat Scala_X = 1.0;
+GLfloat Scala_X = 10.0;
+
 GLfloat minLimit_Y = -150.0;
 GLfloat maxLimit_Y = 1650.0;
-GLfloat Scala_Y = 1.0;
+GLfloat Scala_Y = 10.0;
+
 GLfloat minLimit_Z = 0.0;
 GLfloat maxLimit_Z = 15.0;
 GLfloat Scala_Z = 1.0;
+
 GLfloat LineWidth_X = 2;
 GLfloat LineWidth_Y = 2;
 GLfloat LineWidth_Z = 2;
-GLfloat scalability_X = 10.0;
-GLfloat scalability_Y = 10.0;
-GLfloat scalability_Z = 1.0;
 
 HWND hWndEdit_XMin;
 HWND hWndEdit_XMax;
@@ -70,8 +74,9 @@ HWND hWndEdit_YScala;
 HWND hWndEdit_ZMin;
 HWND hWndEdit_ZMax;
 HWND hWndEdit_ZScala;
+//HWND hWndEdit;
 
-
+// Data structure of a line from ptp file.
 typedef struct
 {
 	GLfloat Time;
@@ -97,26 +102,14 @@ typedef struct
 	GLfloat P20;
 	GLfloat P21;
 } PTPData;
-
-int DrawBackGround(BOOL draw, GLfloat MaxLimit);
-int DrawAxis(BOOL draw, GLfloat xMinLimit, GLfloat xMaxLimit, GLfloat yMinLimit, GLfloat yMaxLimit, GLfloat zMinLimit, GLfloat zMaxLimit);
-void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
-void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
-void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
-void ReadPTPDataFromPTPFile(TCHAR* FileName);
-void ReadFilePTP(TCHAR* FileName);
-BOOL LoadFileAndRetrieveProfile(HWND hEdit, LPCTSTR pszFileName);
-INT ReadSensorFile_PTP(LPTSTR lpFile);
-void ReadKoordinaten();
-
-
 PTPData	 ListOfPTPData[SIZE_OF_PTP] = { 0 };
-int numLines = 0;
-GLfloat ProfileDistance = 1.0f;
-HWND hWndEdit;
 
+//number of line read from a ptp file
+int numLines = 0;
+
+GLfloat ProfileDistance = 1.0f;
+//INT Pnum = 0;
 BOOL DisplayBackground = 0;
-INT Pnum = 0;
 
 BOOL DisplayProfil_1 = 1;
 BOOL DisplayProfil_2 = 1;
@@ -166,6 +159,28 @@ BOOL DisplayUnit_X = 1;
 BOOL DisplayUnit_Y = 1;
 BOOL DisplayUnit_Z = 0;
 
+//const int font = (int)GLUT_BITMAP_TIMES_ROMAN_10;
+char s[30];
+
+int DrawBackGround(BOOL draw, GLfloat MaxLimit);
+
+void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
+
+void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
+
+void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit);
+
+void ReadPTPDataFromPTPFile(TCHAR* FileName);
+
+void ReadFilePTP(TCHAR* FileName);
+
+BOOL LoadFileAndRetrieveProfile(HWND hEdit, LPCTSTR pszFileName);
+
+INT ReadSensorFile_PTP(LPTSTR lpFile);
+
+void ReadCoordinates();
+
+
 /***************************************************************************
 APP SPECIFIC INTERNAL CONSTANTS
 ***************************************************************************/
@@ -173,9 +188,9 @@ APP SPECIFIC INTERNAL CONSTANTS
 /*--------------------------------------------------------------------------}
 ;{                   MAIN MENU COMMAND VALUE CONSTANTS			            }
 ;{-------------------------------------------------------------------------*/
-#define IDC_BMPLOAD 101									// App menu to load bitmap
-#define IDC_PTPLOAD 102									// App menu to load PTP File
-#define IDC_EXIT 105									// App menu command to exit application
+
+#define IDC_PTPLOAD 101									// App menu to load PTP File
+#define IDC_EXIT 102									// App menu command to exit application
 #define IDC_TIMERSTART 201								// App menu to start timer
 #define IDC_TIMERSTOP 202								// App menu to stop timer
 #define IDC_BUTTONPLUS 50								// Button Increment 
@@ -284,6 +299,8 @@ int OpenFileDialog(TCHAR* Name, unsigned short NameBufSize, TCHAR* String, TCHAR
 };
 
 
+
+
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 OPENGL ROUTINES
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -298,7 +315,7 @@ completed is placed on the caller. In this demo initialization will be called
 from WM_CREATE from the application window. Failure of initialization will
 return a render context handle equal to zero.
 
-16Apr16 LdB
+June 2016 P7C.Sarl
 --------------------------------------------------------------------------*/
 static HGLRC InitGL(HWND Wnd) {
 	HGLRC ourOpenGLRC = 0;											// Preset render context to zero
@@ -351,7 +368,7 @@ the Application resizes the window . It will call once after InitGL and
 in this demo it is called from WM_WINDOWPOSCHANGED from the application
 main window.
 
-15Apr16 LdB
+June 2016 P7C.Sarl
 --------------------------------------------------------------------------*/
 static void ReSizeGLScene(HWND Wnd) {
 	GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);  // Fetch the data base
@@ -378,10 +395,10 @@ static void ReSizeGLScene(HWND Wnd) {
 
 /*-[ DrawGLScene ]----------------------------------------------------------
 
-This is where all the OpenGL drawing is done for each frame. In this demo
+This is where all the OpenGL drawing is done for each frame. In this application
 it will be called from WM_PAINT messages to the window
 
-15Apr16 LdB
+June 2016 P7C.Sarl
 --------------------------------------------------------------------------*/
 void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	//if ((db == 0) || (db->glTexture == 0)) return;					// Cant draw .. no render context
@@ -396,40 +413,33 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	gluLookAt(1.0, 2.0, 20.0,										// Camera position
 		0, 0, 0,													// Camera orientation
 		0, 1, 0);													// Camera direction	
-	ReadKoordinaten();
+	
+	ReadCoordinates();												// Read parameters for system coordinate
 
 	// Translates the screen left or right, 
 	// up or down or zoom in zoom out
 	// Draw the positive side of the lines x,y,z
 	glTranslatef(X, Y, Z);
-	//glTranslatef(-5.0f, -5.0f, -15.0f);
 
-	//glRotatef(db->xrot, 1.0f, 0.0f, 0.0f);
 	glRotatef(db->yrot, 0.0f, 1.0f, 0.0f);
-	//glBindTexture(GL_TEXTURE_2D, db->glTexture);
 
 	// Draw Axis x, y and z
-	drawAxis_X(minLimit_X, maxLimit_X, LineWidth_X, Scala_X);
-	drawAxis_Y(minLimit_Y, maxLimit_Y, LineWidth_Y, Scala_Y);
-	drawAxis_Z( minLimit_Z, maxLimit_Z, LineWidth_Z, Scala_Z);
+	drawAxis_X(minLimit_X, maxLimit_X, LineWidth_X, 10);
+	drawAxis_Y(minLimit_Y, maxLimit_Y, LineWidth_Y, 10);
+	drawAxis_Z( minLimit_Z, maxLimit_Z, LineWidth_Z, 10);
 	
 	//DrawAxis(TRUE, 50.0f);
 	//DrawBackGround(FALSE,20.0f);
 	//DrawAxis(TRUE, 50.0f);
 	DrawBackGround(DisplayBackground,20.0f);
 	
-	//ReadFromFile();
-	//ProfileDistance = 0.2f;
-//	GLfloat Tempi = 0.1f;
-//	GLfloat Tempi1 = 0.1f;
 
-	GLfloat TimeScala = Scala_X;
-	GLfloat PScala = Scala_Y;
-
+	//Draw the profiles from list of PTP Data
+	ProfileDistance = Scala_Z;
 	for (int i = 0; i < numLines; i++)
 	{
-		GLfloat time = ListOfPTPData[i].Time / TimeScala;
-		GLfloat timePlus1 = ListOfPTPData[i + 1].Time / TimeScala;
+		GLfloat time = ListOfPTPData[i].Time / Scala_X;
+		GLfloat timePlus1 = ListOfPTPData[i + 1].Time / Scala_X;
 		if (timePlus1 > 0)
 		{
 			if (DisplayProfil_1 && DataProfil_1)
@@ -439,8 +449,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//glLineWidth(1.0);
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 1.0f, 0.0f);
-				glVertex3f(time, ListOfPTPData[i].P1 / PScala, ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P1 / PScala, ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P1 / Scala_Y, ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P1 / Scala_Y, ProfileDistance);
 				glEnd();
 			}
 
@@ -449,8 +459,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	2
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 1.0f, 0.4f);
-				glVertex3f(time, ListOfPTPData[i].P2 / PScala, 2 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / PScala, 2 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P2 / Scala_Y, 2 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / Scala_Y, 2 * ProfileDistance);
 				glEnd();
 			}
 
@@ -459,8 +469,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	3
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 0.7f, 0.0f);
-				glVertex3f(time, ListOfPTPData[i].P3 / PScala, 3 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / PScala, 3 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P3 / Scala_Y, 3 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / Scala_Y, 3 * ProfileDistance);
 				glEnd();
 			}
 
@@ -470,8 +480,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	4
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 1.0f, 0.0f);
-				glVertex3f(time, ListOfPTPData[i].P4 / PScala, 4 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / PScala, 4 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P4 / Scala_Y, 4 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / Scala_Y, 4 * ProfileDistance);
 				glEnd();
 			}
 
@@ -480,8 +490,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	5
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 0.0f, 4.0f);
-				glVertex3f(time, ListOfPTPData[i].P5 / PScala, 5 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / PScala, 5 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P5 / Scala_Y, 5 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / Scala_Y, 5 * ProfileDistance);
 				glEnd();
 			}
 
@@ -490,8 +500,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	6
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 0.0f, 7.0f);
-				glVertex3f(time, ListOfPTPData[i].P6 / PScala, 6 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / PScala, 6 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P6 / Scala_Y, 6 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / Scala_Y, 6 * ProfileDistance);
 				glEnd();
 			}
 
@@ -500,8 +510,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	7
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 0.0f, 0.0f);
-				glVertex3f(time, ListOfPTPData[i].P7 / PScala, 7 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / PScala, 7 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P7 / Scala_Y, 7 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / Scala_Y, 7 * ProfileDistance);
 				glEnd();
 			}
 
@@ -510,8 +520,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	8
 				glBegin(GL_LINES);
 				glColor3f(0.0f, 0.0f, 0.4f);
-				glVertex3f(time, ListOfPTPData[i].P8 / PScala, 8 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / PScala, 8 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P8 / Scala_Y, 8 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / Scala_Y, 8 * ProfileDistance);
 				glEnd();
 
 			}
@@ -521,8 +531,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	9
 				glBegin(GL_LINES);
 				glColor3f(0.0f, 0.0f, 0.7f);
-				glVertex3f(time, ListOfPTPData[i].P9 / PScala, 9 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P9 / PScala, 9 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P9 / Scala_Y, 9 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P9 / Scala_Y, 9 * ProfileDistance);
 				glEnd();
 			}
 
@@ -531,8 +541,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	10
 				glBegin(GL_LINES);
 				glColor3f(0.0f, 0.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P10 / PScala, 10 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P10 / PScala, 10 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P10 / Scala_Y, 10 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P10 / Scala_Y, 10 * ProfileDistance);
 				glEnd();
 			}
 
@@ -541,8 +551,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	11
 				glBegin(GL_LINES);
 				glColor3f(0.0f, 0.4f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P11 / PScala, 11 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P11 / PScala, 11 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P11 / Scala_Y, 11 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P11 / Scala_Y, 11 * ProfileDistance);
 				glEnd();
 			}
 
@@ -551,8 +561,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	12
 				glBegin(GL_LINES);
 				glColor3f(0.0f, 0.7f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P12 / PScala, 12 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P12 / PScala, 12 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P12 / Scala_Y, 12 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P12 / Scala_Y, 12 * ProfileDistance);
 				glEnd();
 			}
 
@@ -561,8 +571,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	13
 				glBegin(GL_LINES);
 				glColor3f(0.4f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P13 / PScala, 13 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P13 / PScala, 13 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P13 / Scala_Y, 13 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P13 / Scala_Y, 13 * ProfileDistance);
 				glEnd();
 			}
 
@@ -571,8 +581,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	14
 				glBegin(GL_LINES);
 				glColor3f(0.7f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P14 / PScala, 14 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P14 / PScala, 14 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P14 / Scala_Y, 14 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P14 / Scala_Y, 14 * ProfileDistance);
 				glEnd();
 			}
 
@@ -581,68 +591,68 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 				//Profi	15
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P15 / PScala, 15 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P15 / PScala, 15 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P15 / Scala_Y, 15 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P15 / Scala_Y, 15 * ProfileDistance);
 				glEnd();
 			}
 
 			if (DisplayProfil_16 && DataProfil_16)
 			{
-				//Profi	13
+				//Profi	16
 				glBegin(GL_LINES);
 				glColor3f(0.4f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P16 / PScala, 16 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P16 / PScala, 16 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P16 / Scala_Y, 16 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P16 / Scala_Y, 16 * ProfileDistance);
 				glEnd();
 			}
 
 			if (DisplayProfil_17 && DataProfil_17)
 			{
-				//Profi	14
+				//Profi	17
 				glBegin(GL_LINES);
 				glColor3f(0.7f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P17 / PScala, 17 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P17 / PScala, 17 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P17 / Scala_Y, 17 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P17 / Scala_Y, 17 * ProfileDistance);
 				glEnd();
 			}
 
 			if (DisplayProfil_18 && DataProfil_18)
 			{
-				//Profi	15
+				//Profi	18
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P18 / PScala, 18 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P18 / PScala, 18 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P18 / Scala_Y, 18 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P18 / Scala_Y, 18 * ProfileDistance);
 				glEnd();
 			}
 
 			if (DisplayProfil_19 && DataProfil_19)
 			{
-				//Profi	14
+				//Profi	19
 				glBegin(GL_LINES);
 				glColor3f(0.7f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P19 / PScala, 19 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P19 / PScala, 19 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P19 / Scala_Y, 19 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P19 / Scala_Y, 19 * ProfileDistance);
 				glEnd();
 			}
 
 			if (DisplayProfil_20 && DataProfil_20)
 			{
-				//Profi	15
+				//Profi	20
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P20, 20 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P20, 20 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P20 / Scala_Y, 20 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P20 / Scala_Y, 20 * ProfileDistance);
 				glEnd();
 			}
 
 			if (DisplayProfil_21 && DataProfil_21)
 			{
-				//Profi	15
+				//Profi	21
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P21, 21 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P21, 21 * ProfileDistance);
+				glVertex3f(time, ListOfPTPData[i].P21 / Scala_Y, 21 * ProfileDistance);
+				glVertex3f(timePlus1, ListOfPTPData[i + 1].P21 / Scala_Y, 21 * ProfileDistance);
 				glEnd();
 			}
 		}
@@ -657,7 +667,7 @@ This converts a bitmap file from the filename path and converts it to an
 OpenGL texture. If the filename is invalid of the file not a bitmap the
 routine will return a GLuint of zero.
 
-15Apr16 LdB
+June 2016 P7C.Sarl
 --------------------------------------------------------------------------*/
 GLuint BMP2GLTexture(TCHAR* fileName, HWND Wnd, GLDATABASE* db) {
 	HBITMAP hBMP;                                                   // Handle Of The Bitmap
@@ -709,167 +719,205 @@ GLuint BMP2GLTexture(TCHAR* fileName, HWND Wnd, GLDATABASE* db) {
 	return (texture);												// Return the texture
 }
 
+
+
+/*-[ drawAxis_X ]--------------------------------------------------------
+
+This function draw and dimension x axis.
+argument @unit define the calibration of dimension. By default it's equals 10.
+
+June 2016 P7C.Sarl
+--------------------------------------------------------------------------*/
 void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
 {
-	//glColor3f(0.0, 1.0, 0.0); // Green for x axis
-	glColor3f(0.0, 0.0, 0.0); // Green for x axis
+	//Draw x axis
+	glColor3f(0.0, 0.0, 0.0); // black for x axis
 	glLineWidth(LineWidth);
 	glBegin(GL_LINES);
 	glVertex3f(minLimit, 0, 0);
 	glVertex3f(maxLimit, 0, 0);
 	glEnd();
-
-	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_X)
+	
+	//Dimensioning x axis throw +
+	for (GLfloat u = 0.0; u <= maxLimit; u += 1.0) 
 	{
-		glLineWidth(3.0);
-		glBegin(GL_LINES);  //scalability
-		glVertex3f(u, -0.5, 0.0);
-		glVertex3f(u, 0.5, 0.0);
+		glLineWidth(1.0);
+		glBegin(GL_LINES);
+		glVertex3f(u, -0.15, 0.0);
+		glVertex3f(u, 0.15, 0.0);
 		glEnd();
-
-		if (DisplayUnit_X)
+	}
+	if (DisplayUnit_X)
+	{
+		for (GLfloat u = 0.0; u <= maxLimit; u += unit)
 		{
-			for (GLfloat unit_ = u; unit_ <=u+scalability_X; unit_ += unit)
-			{
-				glLineWidth(1.0);
-				glBegin(GL_LINES);  //X axis
-				glVertex3f(unit_, (GLfloat)-0.2, (GLfloat)0.0);
-				glVertex3f(unit_, (GLfloat)0.2, (GLfloat)0.0);
-				glEnd();
-			}
+			glLineWidth(2.0);
+			glBegin(GL_LINES);
+			glVertex3f(u, -0.35, 0.0);
+			glVertex3f(u, 0.35, 0.0);
+			glEnd();
+		}
+	}
+
+	//Dimensioning x axis throw -
+	for (GLfloat u = 0.0; u >= minLimit; u += -1.0)
+	{
+		glLineWidth(1.0);
+		glBegin(GL_LINES);
+		glVertex3f(u, -0.15, 0.0);
+		glVertex3f(u, 0.15, 0.0);
+		glEnd();
+	}
+	if (DisplayUnit_X)
+	{
+		for (GLfloat u = 0.0; u >= minLimit; u += -unit)
+		{
+			glLineWidth(2.0);
+			glBegin(GL_LINES);
+			glVertex3f(u, -0.35, 0.0);
+			glVertex3f(u, 0.35, 0.0);
+			glEnd();
 		}
 	}
 }
 
+
+/*-[ drawAxis_Y ]--------------------------------------------------------
+
+This function draw and dimension y axis.
+argument @unit define the calibration of dimension. By default it's equals 10.
+
+June 2016 P7C.Sarl
+--------------------------------------------------------------------------*/
 void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
 {
-	//glColor3f(1.0, 0.0, 0.0); // Red for y axis
-	glColor3f(0.0, 0.0, 0.0);
+	//Draw y axis
+	glColor3f(0.0, 0.0, 0.0); // black for y axis
 	glLineWidth(LineWidth);
 	glBegin(GL_LINES);
 	glVertex3f(0, minLimit, 0);
 	glVertex3f(0, maxLimit, 0);
 	glEnd();
 
-	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_Y)
+	//Dimensioning y axis throw +
+	for (GLfloat u = 0.0; u <= maxLimit; u += 1.0)
 	{
-		glLineWidth(3.0);
-		glBegin(GL_LINES);  //scalability
-		glVertex3f(-0.5, u, 0.0);
-		glVertex3f(0.5, u, 0.0);
+		glLineWidth(1.0);
+		glBegin(GL_LINES);
+		glVertex3f(-0.15, u, 0.0);
+		glVertex3f(0.15, u, 0.0);
 		glEnd();
-
-		if (DisplayUnit_Y)
+	}
+	if (DisplayUnit_Y)
+	{
+		for (GLfloat u = 0.0; u <= maxLimit; u += unit)
 		{
-			for (GLfloat unit_ = u; unit_ <= u + scalability_Y; unit_ += unit)
-			{
-				glLineWidth(1.0);
-				glBegin(GL_LINES);  //Y axis
-				glVertex3f((GLfloat)-0.2, unit_, 0.0);
-				glVertex3f((GLfloat)0.2, unit_, 0.0);
-				glEnd();
-			}
+			glLineWidth(2.0);
+			glBegin(GL_LINES);
+			glVertex3f(-0.35, u, 0.0);
+			glVertex3f(0.35, u, 0.0);
+			glEnd();
+		}
+	}
+
+	//Dimensioning y axis throw -
+	for (GLfloat u = 0.0; u >= minLimit; u += -1.0)
+	{
+		glLineWidth(1.0);
+		glBegin(GL_LINES);
+		glVertex3f(-0.15, u, 0.0);
+		glVertex3f(0.15, u, 0.0);
+		glEnd();
+	}
+	if (DisplayUnit_Y)
+	{
+		for (GLfloat u = 0.0; u >= minLimit; u += -unit)
+		{
+			glLineWidth(2.0);
+			glBegin(GL_LINES);
+			glVertex3f(-0.35, u, 0.0);
+			glVertex3f(0.35, u, 0.0);
+			glEnd();
 		}
 	}
 }
 
+
+
+/*-[ drawAxis_Z ]--------------------------------------------------------
+
+This function draw and dimension z axis.
+argument @unit define the calibration of dimension. By default it's equals 10.
+
+June 2016 P7C.Sarl
+--------------------------------------------------------------------------*/
 void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat unit)
 {
-	//glColor3f(0.0, 0.0, 1.0); // Blue for z axis
-	glColor3f(0.0, 0.0, 0.0);
+	//Draw z axis
+	glColor3f(0.0, 0.0, 0.0); // black for z axis
 	glLineWidth(LineWidth);
 	glBegin(GL_LINES);
 	glVertex3f(0, 0, minLimit);
 	glVertex3f(0, 0, maxLimit);
 	glEnd();
 
-	for (GLfloat u = minLimit; u <= maxLimit; u += scalability_Z)
+	//Dimensioning z axis throw +
+	for (GLfloat u = 0.0; u <= maxLimit; u += 1.0)
 	{
-		glLineWidth(3.0);
-		glBegin(GL_LINES);  //scalability
-		glVertex3f( 0.0, (GLfloat)-0.2, (GLfloat)u);
-		glVertex3f( 0.0, (GLfloat)0.2, (GLfloat)u);
+		glLineWidth(1.0);
+		glBegin(GL_LINES);
+		glVertex3f(0.0, -0.15, u);
+		glVertex3f(0.0, 0.15, u);
 		glEnd();
-
-		if (DisplayUnit_Z)
-		{
-			for (GLfloat unit_ = u; unit_ <= u + scalability_Z; unit_ += unit)
-			{
-				glLineWidth(1.0);
-				glBegin(GL_LINES);  //Z axis
-				glVertex3f( 0.0, (GLfloat)-0.2, unit_);
-				glVertex3f( 0.0, (GLfloat)0.2, unit_);
-				glEnd();
-			}
-		}
 	}
-}
-
-int DrawAxis(BOOL draw, GLfloat xMinLimit,GLfloat xMaxLimit, GLfloat yMinLimit,GLfloat yMaxLimit, GLfloat zMinLimit,GLfloat zMaxLimit)
-{
-	if (draw)  //  activate or deactive  axis drawing
+	if (DisplayUnit_Z)
 	{
-		// L axe des Xint
-		glColor3f(1.0f, 0.0f, 0.0f);
-		glLineWidth(5.0);
-		glBegin(GL_LINES);  //X axis
-		glVertex3f(xMinLimit, 0.0, 0.0);
-		glVertex3f(xMaxLimit, 0.0, 0.0);
-		glEnd();
-
-		GLfloat a = 1;
-		for (GLfloat u = xMinLimit; u <= xMaxLimit; u+=a)
+		for (GLfloat u = 0.0; u <= maxLimit; u += unit)
 		{
-			glLineWidth(3.0);
-			glBegin(GL_LINES);  //X axis
-			glVertex3f(u, (GLfloat)-0.1, 0.0);
-			glVertex3f(u, (GLfloat)0.1, 0.0);
+			glLineWidth(2.0);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, -0.35, u);
+			glVertex3f(0.0, 0.35, u);
 			glEnd();
-
-			for (GLfloat unit = 0; unit <= 10; unit += 0.1)
-			{
-				glLineWidth(1.0);
-				glBegin(GL_LINES);  //X axis
-				glVertex3f(u + unit, (GLfloat)-0.07, 0.0);
-				glVertex3f(u + unit, (GLfloat)0.07, 0.0);
-				glEnd();
-			}
 		}
+	}
 
-		// L axe des Y
-		glColor3f(0.0f, 1.0f, 0.0f);
-		glLineWidth(5.0);
-		glBegin(GL_LINES);  //X axis
-		glVertex3f(0.0, yMinLimit, 0.0);
-		glVertex3f(0.0, yMaxLimit, 0.0);
-		glEnd();
-
-		// L axe des Z
-		glColor3f(0.0f, 0.0f, 1.0f);
-		glLineWidth(5.0);
-		glBegin(GL_LINES);  //X axis
-		glVertex3f(0.0, 0.0, zMinLimit);
-		glVertex3f(0.0, 0.0, zMaxLimit);
+	//Dimensioning z axis throw -
+	for (GLfloat u = 0.0; u >= minLimit; u += -1.0)
+	{
+		glLineWidth(1.0);
+		glBegin(GL_LINES);
+		glVertex3f(0.0, -0.15, u);
+		glVertex3f(0.0, 0.15, u);
 		glEnd();
 	}
-	else
+	if (DisplayUnit_Z)
 	{
-		// The Axis won't be draw
+		for (GLfloat u = 0.0; u >= minLimit; u += -unit)
+		{
+			glLineWidth(2.0);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, -0.35, u);
+			glVertex3f(0.0, 0.35, u);
+			glEnd();
+		}
 	}
 }
 
-void ReadKoordinaten()
-{
-	/*GLfloat minLimit_X = -1.0;
-	GLfloat maxLimit_X = 6000.0;
-	GLfloat Scala_X = 1.0;
-	GLfloat minLimit_Y = -150.0;
-	GLfloat maxLimit_Y = 1650.0;
-	GLfloat Scala_Y = 1.0;
-	GLfloat minLimit_Z = 0.0;
-	GLfloat maxLimit_Z = 15.0;
-	GLfloat Scala_Z = 1.0;*/
 
+
+/*-[ ReadCoordinates ]--------------------------------------------------------
+
+This function read text area parameter respectively for:
+- Min x, y and z value
+- Max x, y and z value
+- Scale representation x, y and z
+Then, init the global variables
+minLimit_X, maxLimit_X, Scala_X, minLimit_Y, maxLimit_Y, Scala_Y, minLimit_Z, maxLimit_Z, Scala_Z,
+June 2016 P7C.Sarl
+--------------------------------------------------------------------------*/
+void ReadCoordinates()
+{
 	char xmin_buffer[65];
 	char xmax_buffer[65];
 	char xScala_buffer[65];
@@ -881,7 +929,6 @@ void ReadKoordinaten()
 	char zmin_buffer[65];
 	char zmax_buffer[65];
 	char zScala_buffer[65];
-	
 
 	int xminlen = GetWindowTextLength(hWndEdit_XMin);
 	GetWindowTextA(hWndEdit_XMin, xmin_buffer, xminlen);
@@ -928,25 +975,15 @@ void ReadKoordinaten()
 	GetWindowTextA(hWndEdit_ZScala, zScala_buffer, zScalaLen);
 	float zscalawert = atof(zScala_buffer);
 	Scala_Z = (GLfloat)zscalawert;
-
-
-
-
-
-	//xmax = xmin;
-	/*GetWindowText(hWndEdit_XMax, xmax, 20);
-	GetWindowText(hWndEdit_XScala, xscala, 20);
-
-	GetWindowText(hWndEdit_YMin, ymin, 20);
-	GetWindowText(hWndEdit_YMax, ymax, 20);
-	GetWindowText(hWndEdit_YScala, yscala, 20);
-	*/
-	//GetWindowText(hWndEdit_ZMin, zmin, 20);
-
-	/*GetWindowText(hWndEdit_ZMax, zmax, 20);
-	GetWindowText(hWndEdit_ZScala, zscala, 20);*/
 }
 
+
+/*-[  DrawBackGround ]--------------------------------------------------------
+
+This function draw the background of scene.
+
+June 2016 P7C.Sarl
+--------------------------------------------------------------------------*/
 int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 {
 	if (draw)
@@ -986,20 +1023,17 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
   return 0;	
 }
 
-void initArryofPTP()
-{
-
-}
 
 
-INT ReadSensorFile_PTP( LPTSTR lpFile)
+
+INT ReadSensorFile_PTP(LPTSTR lpFile)
 {
 	FILE      *stream;
 	errno_t   err;
 	fpos_t    pos;
 	_TCHAR    buffer[6 * MAX_PATH] = { 0 };
-	INT       i; 
-	
+	INT       i;
+
 	memset(ListOfPTPData, 0, sizeof(ListOfPTPData)); //Reset ListOfPTPData
 	err = _tfopen_s(&stream, lpFile, _T("r+t, ccs=UNICODE"));
 	_fgetts(buffer, sizeof(buffer) / sizeof(_TCHAR), stream);
@@ -1014,154 +1048,132 @@ INT ReadSensorFile_PTP( LPTSTR lpFile)
 		{
 			switch (i)
 			{
-				case  1:
-				case  2:
-				case  3:
-				case  4:
-				case  5:
-				case  6:
-				case  7:
-				case  8:
-				case  9:
-					break;
-				default: // Zeilen Messwerte von i=1 bis SEC	
+			case  1:
+			case  2:
+			case  3:
+			case  4:
+			case  5:
+			case  6:
+			case  7:
+			case  8:
+			case  9:
+				break;
+			default: // Zeilen Messwerte von i=1 bis SEC	
 
-					_stscanf_s(buffer, _T("%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f\n"), &ListOfPTPData[numLines].Time, &ListOfPTPData[numLines].P1,
-						&ListOfPTPData[numLines].P2, &ListOfPTPData[numLines].P3, &ListOfPTPData[numLines].P4, &ListOfPTPData[numLines].P5, &ListOfPTPData[numLines].P6,
-						&ListOfPTPData[numLines].P7, &ListOfPTPData[numLines].P8, &ListOfPTPData[numLines].P9, &ListOfPTPData[numLines].P10, &ListOfPTPData[numLines].P11,
-						&ListOfPTPData[numLines].P12, &ListOfPTPData[numLines].P13, &ListOfPTPData[numLines].P14, &ListOfPTPData[numLines].P15, &ListOfPTPData[numLines].P16,
-						&ListOfPTPData[numLines].P17, &ListOfPTPData[numLines].P18, &ListOfPTPData[numLines].P19, &ListOfPTPData[numLines].P20, &ListOfPTPData[numLines].P21);
-					
-					GLfloat zero = 0.0;
-					if (ListOfPTPData[numLines].P1 > zero)
-					{
-						DataProfil_1 = 1;
-					}
+				_stscanf_s(buffer, _T("%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f%f\n"), &ListOfPTPData[numLines].Time, &ListOfPTPData[numLines].P1,
+					&ListOfPTPData[numLines].P2, &ListOfPTPData[numLines].P3, &ListOfPTPData[numLines].P4, &ListOfPTPData[numLines].P5, &ListOfPTPData[numLines].P6,
+					&ListOfPTPData[numLines].P7, &ListOfPTPData[numLines].P8, &ListOfPTPData[numLines].P9, &ListOfPTPData[numLines].P10, &ListOfPTPData[numLines].P11,
+					&ListOfPTPData[numLines].P12, &ListOfPTPData[numLines].P13, &ListOfPTPData[numLines].P14, &ListOfPTPData[numLines].P15, &ListOfPTPData[numLines].P16,
+					&ListOfPTPData[numLines].P17, &ListOfPTPData[numLines].P18, &ListOfPTPData[numLines].P19, &ListOfPTPData[numLines].P20, &ListOfPTPData[numLines].P21);
 
-					if (ListOfPTPData[numLines].P2 > zero)
-					{
-						DataProfil_2 = 1;
-					}
-					if (ListOfPTPData[numLines].P3 > zero)
-					{
-						DataProfil_3 = 1;
-					}
+				GLfloat zero = 0.0;
+				if (ListOfPTPData[numLines].P1 > zero)
+				{
+					DataProfil_1 = 1;
+				}
 
-					if (ListOfPTPData[numLines].P4 > zero)
-					{
-						DataProfil_4 = 1;
-					}
-					if (ListOfPTPData[numLines].P5 > zero)
-					{
-						DataProfil_5 = 1;
-					}
+				if (ListOfPTPData[numLines].P2 > zero)
+				{
+					DataProfil_2 = 1;
+				}
+				if (ListOfPTPData[numLines].P3 > zero)
+				{
+					DataProfil_3 = 1;
+				}
 
-					if (ListOfPTPData[numLines].P6 > zero)
-					{
-						DataProfil_6 = 1;
-					}
-					if (ListOfPTPData[numLines].P7 > zero)
-					{
-						DataProfil_7 = 1;
-					}
+				if (ListOfPTPData[numLines].P4 > zero)
+				{
+					DataProfil_4 = 1;
+				}
+				if (ListOfPTPData[numLines].P5 > zero)
+				{
+					DataProfil_5 = 1;
+				}
 
-					if (ListOfPTPData[numLines].P8 > zero)
-					{
-						DataProfil_8 = 1;
-					}
-					if (ListOfPTPData[numLines].P9 > zero)
-					{
-						DataProfil_9 = 1;
-					}
+				if (ListOfPTPData[numLines].P6 > zero)
+				{
+					DataProfil_6 = 1;
+				}
+				if (ListOfPTPData[numLines].P7 > zero)
+				{
+					DataProfil_7 = 1;
+				}
 
-					if (ListOfPTPData[numLines].P10 > zero)
-					{
-						DataProfil_10 = 1;
-					}
-					if (ListOfPTPData[numLines].P11 > zero)
-					{
-						DataProfil_11 = 1;
-					}
+				if (ListOfPTPData[numLines].P8 > zero)
+				{
+					DataProfil_8 = 1;
+				}
+				if (ListOfPTPData[numLines].P9 > zero)
+				{
+					DataProfil_9 = 1;
+				}
 
-					if (ListOfPTPData[numLines].P12 > zero)
-					{
-						DataProfil_12 = 1;
-					}
-					if (ListOfPTPData[numLines].P13 > zero)
-					{
-						DataProfil_13 = 1;
-					}
+				if (ListOfPTPData[numLines].P10 > zero)
+				{
+					DataProfil_10 = 1;
+				}
+				if (ListOfPTPData[numLines].P11 > zero)
+				{
+					DataProfil_11 = 1;
+				}
 
-					if (ListOfPTPData[numLines].P14 > zero)
-					{
-						DataProfil_14 = 1;
-					}
-					if (ListOfPTPData[numLines].P15 > zero)
-					{
-						DataProfil_15 = 1;
-					}
+				if (ListOfPTPData[numLines].P12 > zero)
+				{
+					DataProfil_12 = 1;
+				}
+				if (ListOfPTPData[numLines].P13 > zero)
+				{
+					DataProfil_13 = 1;
+				}
 
-					if (ListOfPTPData[numLines].P16 > zero)
-					{
-						DataProfil_16 = 1;
-					}
-					if (ListOfPTPData[numLines].P17 > zero)
-					{
-						DataProfil_17 = 1;
-					}
+				if (ListOfPTPData[numLines].P14 > zero)
+				{
+					DataProfil_14 = 1;
+				}
+				if (ListOfPTPData[numLines].P15 > zero)
+				{
+					DataProfil_15 = 1;
+				}
 
-					if (ListOfPTPData[numLines].P18 > zero)
-					{
-						DataProfil_18 = 1;
-					}
-					if (ListOfPTPData[numLines].P19 > zero)
-					{
-						DataProfil_19 = 1;
-					}
+				if (ListOfPTPData[numLines].P16 > zero)
+				{
+					DataProfil_16 = 1;
+				}
+				if (ListOfPTPData[numLines].P17 > zero)
+				{
+					DataProfil_17 = 1;
+				}
 
-					if (ListOfPTPData[numLines].P20 > zero)
-					{
-						DataProfil_20 = 1;
-					}
-					if (ListOfPTPData[numLines].P21 > zero)
-					{
-						DataProfil_21 = 1;
-					}
+				if (ListOfPTPData[numLines].P18 > zero)
+				{
+					DataProfil_18 = 1;
+				}
+				if (ListOfPTPData[numLines].P19 > zero)
+				{
+					DataProfil_19 = 1;
+				}
 
-					numLines++;
-					break;
+				if (ListOfPTPData[numLines].P20 > zero)
+				{
+					DataProfil_20 = 1;
+				}
+				if (ListOfPTPData[numLines].P21 > zero)
+				{
+					DataProfil_21 = 1;
+				}
+
+				numLines++;
+				break;
 			}
 		}
 		i++;
 	}
 	fclose(stream);
-	
+
 	return 1;
 }
 
-//int ReadFromFile()
-//{
-//	numLines = 1000;
-//	for (int i = 0; i < numLines; i++)
-//	{
-//		ListOfPTPData[i].Time = (GLfloat)i;
-//		ListOfPTPData[i].P1 = (GLfloat)i;
-//		ListOfPTPData[i].P2 = (GLfloat)i/2;
-//		ListOfPTPData[i].P3 = (GLfloat)i/3;
-//		ListOfPTPData[i].P4 = (GLfloat)i/4;
-//		ListOfPTPData[i].P5 = (GLfloat)i*2;
-//		ListOfPTPData[i].P6 = (GLfloat)(i%9);
-//		ListOfPTPData[i].P7 = (GLfloat)i-2;
-//		ListOfPTPData[i].P8 = (GLfloat)i;
-//		ListOfPTPData[i].P9 = (GLfloat)i;
-//		ListOfPTPData[i].P10 = (GLfloat)i;
-//		ListOfPTPData[i].P11 = (GLfloat)i;
-//		ListOfPTPData[i].P12 = (GLfloat)i;
-//		ListOfPTPData[i].P13 = (GLfloat)i;
-//		ListOfPTPData[i].P14 = (GLfloat)i;
-//	}
-//	return 0;
-//}
+
 /*---------------------------------------------------------------------------
 Application handler.
 ---------------------------------------------------------------------------*/
@@ -1169,7 +1181,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 	switch (Msg) {
 	case WM_CREATE: {											// WM_CREATE MESSAGE
-    HWND hwndButton;	  
+		HWND hwndButton;	  
 		HWND hwndButtonMinus;	  
 		HWND hwndButtonProfileDistancePlus;	  
 		HWND hwndButtonProfileDistanceMinus; 	  
@@ -1184,16 +1196,6 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		HWND hwndButtonProfile9Display; 
 		HWND hwndButtonBackGround; 
 		
-
-		/*HWND hWndEdit_XMin;
-		HWND hWndEdit_XMax;
-		HWND hWndEdit_XScala;
-		HWND hWndEdit_YMin;
-		HWND hWndEdit_YMax;
-		HWND hWndEdit_YScala;
-		HWND hWndEdit_ZMin;
-		HWND hWndEdit_ZMax;
-		HWND hWndEdit_ZScala;*/
 																//  First manually build a menu for a window
 		HMENU SubMenu, Menu;
 		Menu = CreateMenu();									// Create a menu and populate it
@@ -1211,16 +1213,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(SubMenu, MF_STRING, IDC_EXIT, _T("&Background"));
 		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Setup"));
-		
-
-		//AppendMenu(SubMenu, MF_STRING, IDC_BMPLOAD, _T("&Load Bitmap"));
-		//AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
-		//AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTART, _T("&Start Timer"));
-		//AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTOP, _T("Stop &Timer"));
-		//AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Timer"));
-		//SubMenu = CreatePopupMenu();
-		/*AppendMenu(SubMenu, MF_STRING, 301, _T("&Vectorize"));
-		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Process"));*/
+	
 
 		SetMenu(Wnd, Menu);									// Set the menu to window
 
@@ -1275,6 +1268,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILEDISTANCE_PLUS,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfileDistanceMinus = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"- Distance",      // Button text 
@@ -1287,6 +1281,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILEDISTANCE_MINUS,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfile1Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P1",      // Button text 
@@ -1299,6 +1294,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILE_1_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfile2Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P2",      // Button text 
@@ -1311,6 +1307,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILE_2_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfile3Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P3",      // Button text 
@@ -1323,6 +1320,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILE_3_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfile4Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P4",      // Button text 
@@ -1335,6 +1333,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILE_4_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfile5Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P5",      // Button text 
@@ -1347,6 +1346,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILE_5_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfile6Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P6",      // Button text 
@@ -1359,6 +1359,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILE_6_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfile7Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P7",      // Button text 
@@ -1371,6 +1372,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILE_7_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfile8Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P8",      // Button text 
@@ -1383,6 +1385,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HMENU)(int)IDC_PROFILE_8_DISPLAY,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
+
 		hwndButtonProfile9Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"P9",      // Button text 
@@ -1443,7 +1446,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			1020, 10, //x,y positin 
 			70, 20,	//Width height
 			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		SetWindowText(hWndLabek_X, TEXT("X: Time"));
+		SetWindowText(hWndLabek_X, TEXT("X: Time(s)"));
 
 		  hWndEdit_XMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT ,
@@ -1470,28 +1473,28 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		 HWND hWndLabek_Y = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_CENTER,
 			 1100, 10, //x,y positin 
-			 70, 20,	//Width height
+			 80, 20,	//Width height
 			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndLabek_Y, TEXT("Y: Temp."));
+		 SetWindowText(hWndLabek_Y, TEXT("Y: Temp(°C)"));
 
 		 hWndEdit_YMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
 			 1100, 30, //x,y positin 
-			 70, 20,	//Width height
+			 80, 20,	//Width height
 			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
 		 SetWindowText(hWndEdit_YMin, TEXT("-200.0"));
 
 		 hWndEdit_YMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
 			 1100, 50, //x,y positin 
-			 70, 20,	//Width height
+			 80, 20,	//Width height
 			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_YMax, TEXT("170.0"));
+		 SetWindowText(hWndEdit_YMax, TEXT("1650.0"));
 
 		 hWndEdit_YScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
 			 1100, 70, //x,y positin 
-			 70, 20,	//Width height
+			 80, 20,	//Width height
 			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
 		 SetWindowText(hWndEdit_YScala, TEXT("10.0"));
 
@@ -1541,26 +1544,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
-		case IDC_BMPLOAD: {                                 // LOAD BITMAP COMMAND
-			TCHAR FileName[256];
-			int i = OpenFileDialog(&FileName[0], _countof(FileName),
-				_T("BMP file:"), _T("BMP"), _T("BMP FILE TO LOAD"), Wnd);
-			if (i != 0) {
-				// Fetch that childs data base
-				GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);
-				if (db != 0) {
-					// Now check if texture exists and if so delete it
-					if (db->glTexture) {
-						glDeleteTextures(1, &db->glTexture);
-						db->glTexture = 0;
-					}
-					// Create new texture
-					db->glTexture = BMP2GLTexture(&FileName[0], Wnd, db);
-					InvalidateRect(Wnd, 0, TRUE);	// Force redraw of window
-				}
-			}
-		}
-		break;
+
 		case IDC_PTPLOAD: {                                 // LOAD PTP-File COMMAND
 			TCHAR FileName[256];
 			int i = OpenFileDialog(&FileName[0], _countof(FileName),
@@ -1573,17 +1557,26 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			}
 		}
 		break;
+
+
+
 		case IDC_EXIT:										// EXIT COMMAND
 			PostMessage(Wnd, WM_CLOSE, 0, 0);				// Post close message 
 			break;
-		case IDC_TIMERSTART: {								// Menu item: Timer-->Start timer
+
+
+
+		case IDC_TIMERSTART: {							// Menu item: Timer-->Start timer
 			SetTimer(Wnd,								// handle to main window 
 				1,										// timer identifier 
 				100,									// 100 ms interval 
 				0);										// timer callback null
 		}
 		break;
-		case IDC_TIMERSTOP: {								// Menu item: Timer-->Stop timer
+
+
+
+		case IDC_TIMERSTOP: {							// Menu item: Timer-->Stop timer
 			KillTimer(Wnd, 1);							// Kill the timer
 		}
 
@@ -1592,23 +1585,30 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);// Fetch the data base
 			//db->xrot += 5.0f;									// Inc x rotation
 			db->yrot += 5.0f;									// Inc y rotation
+			//db->zrot += 5.0f;									// Inc z rotation
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break;
+
 		case IDC_BUTTONMINUS: {
 			GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);// Fetch the data base
 			//db->xrot -= 5.0f;									// Inc x rotation
 			db->yrot -= 5.0f;									// Inc y rotation
+			//db->zrot -= 5.0f;									// Inc z rotation
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break;
 		//-------------End View Configuration-------------------------------------------
+
+
 
 		//----------- Begin Profile Configuration---------------------------------------
 		case IDC_PROFILEDISTANCE: {
 			 	
 		}
 		break;
+
+
 		case IDC_PROFILEDISTANCE_PLUS: {
 			if (ProfileDistance < 5.0f)
 			{
@@ -1617,6 +1617,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			}
 		}
 		 break;
+
+
 		case IDC_PROFILEDISTANCE_MINUS: {
 			if (ProfileDistance > 0.0f)
 			{
@@ -1625,6 +1627,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			}
 		}
 		break;
+
+
 		case IDC_PROFILE_1_DISPLAY: {
 			if(DisplayProfil_1)
 				DisplayProfil_1 = FALSE;
@@ -1634,6 +1638,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break;
+
+
 		case IDC_PROFILE_2_DISPLAY: {
 			if (DisplayProfil_2)
 				DisplayProfil_2 = FALSE;
@@ -1642,6 +1648,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break; 
+
+
 		case IDC_PROFILE_3_DISPLAY: {
 			if (DisplayProfil_3)
 				DisplayProfil_3 = FALSE;
@@ -1650,6 +1658,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break;
+
+
 		case IDC_PROFILE_4_DISPLAY: {
 			if (DisplayProfil_4)
 				DisplayProfil_4 = FALSE;
@@ -1658,7 +1668,9 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
-									break;
+		break;
+
+
 		case IDC_PROFILE_5_DISPLAY: {
 			if (DisplayProfil_5)
 				DisplayProfil_5 = FALSE;
@@ -1667,6 +1679,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break;
+
+
 		case IDC_PROFILE_6_DISPLAY: {
 			if (DisplayProfil_6)
 				DisplayProfil_6 = FALSE;
@@ -1675,6 +1689,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break;
+
+
 		case IDC_PROFILE_7_DISPLAY: {
 			if (DisplayProfil_7)
 				DisplayProfil_7 = FALSE;
@@ -1684,6 +1700,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break;
+
+
 		case IDC_PROFILE_8_DISPLAY: {
 			if (DisplayProfil_8)
 				DisplayProfil_8 = FALSE;
@@ -1692,6 +1710,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break;
+
+
 		case IDC_PROFILE_9_DISPLAY: {
 			if (DisplayProfil_9)
 				DisplayProfil_9 = FALSE;
@@ -1700,6 +1720,8 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
 		break;
+
+
 		case IDC_BACKGROUND_DISPLAY: {
 			if (DisplayBackground)
 				DisplayBackground = FALSE;
@@ -1707,14 +1729,15 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 				DisplayBackground = TRUE;
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
 		}
-									break;
-					
-		
+		break;
+						
 		//----------End Profile configuration-----------------------------------------------
 								  
 							  
 		};
 		break;
+
+
 	case WM_PAINT: {											// WM_PAINT MESSAGE
 		PAINTSTRUCT Ps;
 		GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);// Fetch the data base
@@ -1724,21 +1747,27 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		EndPaint(Wnd, &Ps);									// End paint
 		return 0;
 	}
-				   break;
+	break;
+
+
 	case WM_TIMER: {											// WM_TIMER MESSAGE
 		GLDATABASE* db = (GLDATABASE*)GetProp(Wnd, DATABASE_PROPERTY);// Fetch the data base
 		db->xrot += 1.0f;									// Inc x rotation
 		db->yrot += 1.0f;									// Inc y rotation
 		InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us			
 	}
-				   break;
+	break;
+
+
 	case WM_WINDOWPOSCHANGED:									// WM_WINDOWPOSCHANGED
 																// Check if window size has changed .. window move doesnt change aspect ratio
 		if ((lParam == 0) || ((((PWINDOWPOS)lParam)->flags & SWP_NOSIZE) == 0)) {
 			ReSizeGLScene(Wnd);									// Rescale the GL window							
 			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us
 		}
-		break;
+	break;
+
+
 	case WM_ERASEBKGND:											// WM_ERASEBKGND MESSAGE
 		return (FALSE);
 	default: return DefWindowProc(Wnd, Msg, wParam, lParam);	// Default handler
@@ -1947,9 +1976,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	WndClass.lpszClassName = AppClassName;							// Set class name
 	RegisterClassEx(&WndClass);										// Register the class
 	GetClientRect(GetDesktopWindow(), &R);							// Get desktop area					
-	Wnd = CreateWindowEx(0, AppClassName, _T("OpenGL Demo Program"),
+	Wnd = CreateWindowEx(0, AppClassName, _T("PTP 3D"),
 		WS_VISIBLE | WS_OVERLAPPEDWINDOW, R.left + 50, R.top + 50,
-		R.right - R.left - 100, R.bottom - R.top - 100,
+		R.right - R.left - 10, R.bottom - R.top - 100,
 		0, 0, 0, NULL);												// Create a window
 	while (GetMessage(&Msg, 0, 0, 0)) {								// Get messages
 		TranslateMessage(&Msg);										// Translate each message
