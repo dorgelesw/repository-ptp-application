@@ -1,6 +1,6 @@
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {						OPENGL APP 3D PTP VERSION 1.0					    }
-{       Writen by Gilles Tanko P7c SARL, June 2016.							}
+{       Writen by P7C SARL, June 2016.							}
 {	  	contact: info@p7c-sarl,com											}
 {																			}
 {       																	}
@@ -11,7 +11,7 @@
 /*==========================================================================
 BACKGROUND TO CODE
 
-This code is is C syntax rather than C++ or C# code and contains no objects
+This code is C syntax rather than C++ or C# code and contains no objects
 or sophisticated elements. That is not because those techniques don't have
 merit or a place but simply because this code is targetted as a learning
 tool to the widest audience. Anyone proficient in C++ or C# could easily
@@ -25,8 +25,6 @@ convert this code to those formats.
 #include <commctrl.h>		// Common controls dialogs unit
 #include <gl\gl.h>			// Header File For The OpenGL32 Library
 #include <gl\glu.h>			// Header File For The GLu32 Library
-#include <stdio.h>
-//#include <gl/glext.h>
 
 
 #include <stdio.h>
@@ -108,7 +106,9 @@ PTPData	 ListOfPTPData[SIZE_OF_PTP] = { 0 };
 int numLines = 0;
 
 GLfloat ProfileDistance = 1.0f;
-//INT Pnum = 0;
+
+GLfloat ProfileWidth = 1.0;
+
 BOOL DisplayBackground = 0;
 
 BOOL DisplayProfil_1 = 1;
@@ -159,7 +159,8 @@ BOOL DisplayUnit_X = 1;
 BOOL DisplayUnit_Y = 1;
 BOOL DisplayUnit_Z = 0;
 
-//const int font = (int)GLUT_BITMAP_TIMES_ROMAN_10;
+BOOL IncreaseProfileWidth = 1;
+
 char s[30];
 
 int DrawBackGround(BOOL draw, GLfloat MaxLimit);
@@ -198,6 +199,8 @@ APP SPECIFIC INTERNAL CONSTANTS
 #define IDC_PROFILEDISTANCE 52							// EDITBUTTON PROFILEDISTANCE 
 #define IDC_PROFILEDISTANCE_PLUS 53						// EDITBUTTON PROFILEDISTANCE Increse 
 #define IDC_PROFILEDISTANCE_MINUS 54					// EDITBUTTON PROFILEDISTANCE decrese
+#define IDC_PROFILEWIDTH 55								// EDITBUTTON PROFILE WIDTH
+#define IDC_PROFILESCALE 56								// EDITBUTTON PROFILE SCALE
 
 #define IDC_PROFILE_1_DISPLAY 301							// DISPLAY PROFILE 1
 #define IDC_PROFILE_2_DISPLAY 302							// DISPLAY PROFILE 2
@@ -428,14 +431,12 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 	drawAxis_Y(minLimit_Y, maxLimit_Y, LineWidth_Y, 10);
 	drawAxis_Z( minLimit_Z, maxLimit_Z, LineWidth_Z, 10);
 	
-	//DrawAxis(TRUE, 50.0f);
-	//DrawBackGround(FALSE,20.0f);
-	//DrawAxis(TRUE, 50.0f);
 	DrawBackGround(DisplayBackground,20.0f);
 	
 
 	//Draw the profiles from list of PTP Data
 	ProfileDistance = Scala_Z;
+	glLineWidth(ProfileWidth);
 	for (int i = 0; i < numLines; i++)
 	{
 		GLfloat time = ListOfPTPData[i].Time / Scala_X;
@@ -443,10 +444,8 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 		if (timePlus1 > 0)
 		{
 			if (DisplayProfil_1 && DataProfil_1)
-			{
-				glLineWidth(10.0);
+			{			
 				//Profil 1
-				//glLineWidth(1.0);
 				glBegin(GL_LINES);
 				glColor3f(1.0f, 1.0f, 0.0f);
 				glVertex3f(time, ListOfPTPData[i].P1 / Scala_Y, ProfileDistance);
@@ -1208,11 +1207,11 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&File"));
 
 		//create menu setup
-		SubMenu = CreatePopupMenu();
+		/*SubMenu = CreatePopupMenu();
 		AppendMenu(SubMenu, MF_STRING, IDC_TIMERSTART, _T("&Coordinates"));
 		AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(SubMenu, MF_STRING, IDC_EXIT, _T("&Background"));
-		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Setup"));
+		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Setup"));*/
 	
 
 		SetMenu(Wnd, Menu);									// Set the menu to window
@@ -1258,27 +1257,27 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 		hwndButtonProfileDistancePlus = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
-			L"+ Distance",      // Button text 
+			L"LINE WIDTH",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
 			220,         // x position 
 			10,         // y position 
 			100,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			(HMENU)(int)IDC_PROFILEDISTANCE_PLUS,       // No menu.
+			(HMENU)(int)IDC_PROFILEWIDTH,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
 		hwndButtonProfileDistanceMinus = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
-			L"- Distance",      // Button text 
+			L"APPLY SCALE",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
 			330,         // x position 
 			10,         // y position 
 			100,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-			(HMENU)(int)IDC_PROFILEDISTANCE_MINUS,       // No menu.
+			(HMENU)(int)IDC_PROFILESCALE,       // No menu.
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
@@ -1609,22 +1608,23 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		break;
 
 
-		case IDC_PROFILEDISTANCE_PLUS: {
-			if (ProfileDistance < 5.0f)
+		case IDC_PROFILEWIDTH: {
+			if (IncreaseProfileWidth)
 			{
-				ProfileDistance += 0.05f;
-				InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us
+				IncreaseProfileWidth = FALSE;
+				ProfileWidth = 10.0f;
 			}
+			else {
+				IncreaseProfileWidth = TRUE;
+				ProfileWidth = 1.0f;
+			}
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us
 		}
 		 break;
 
 
-		case IDC_PROFILEDISTANCE_MINUS: {
-			if (ProfileDistance > 0.0f)
-			{
-				ProfileDistance -= 0.05f;
-				InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us
-			}
+		case IDC_PROFILESCALE: {
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us
 		}
 		break;
 
