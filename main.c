@@ -39,9 +39,9 @@ convert this code to those formats.
 #pragma comment(lib,"OpenGl32.lib")
 #pragma comment(lib,"GLU32.lib")
 
-GLfloat X = 0.0f; // Translate screen to x direction (left or right)
-GLfloat Y = 0.0f; // Translate screen to y direction (up or down)
-GLfloat Z = 0.0f; // Translate screen to z direction (zoom in or out)
+GLfloat X = -60.0f; // Translate screen to x direction (left or right)
+GLfloat Y = -10.0f; // Translate screen to y direction (up or down)
+GLfloat Z = -20.0f; // Translate screen to z direction (zoom in or out)
 
 GLfloat rotLx = 0.0f; // Translate screen by using the glulookAt function (left or right)
 GLfloat rotLy = 0.0f; // Translate screen by using the glulookAt function (up or down)
@@ -72,6 +72,14 @@ HWND hWndEdit_YScala;
 HWND hWndEdit_ZMin;
 HWND hWndEdit_ZMax;
 HWND hWndEdit_ZScala;
+
+HWND hWndCoord_X_MINUS;
+HWND hWndCoord_Y_MINUS;
+HWND hWndCoord_Z_MINUS;
+
+HWND hWndCoord_X_PLUS;
+HWND hWndCoord_Y_PLUS;
+HWND hWndCoord_Z_PLUS;
 //HWND hWndEdit;
 
 // Data structure of a line from ptp file.
@@ -216,6 +224,13 @@ APP SPECIFIC INTERNAL CONSTANTS
 #define BUF_SIZE 40			
 #define MAX_PATH  260
 #define MAX_CHANNELS  22 
+
+#define IDC_CORRD_X_MINUS 700
+#define IDC_CORRD_Y_MINUS 701
+#define IDC_CORRD_Z_MINUS 702
+#define IDC_CORRD_X_PLUS 703
+#define IDC_CORRD_Y_PLUS 704
+#define IDC_CORRD_Z_PLUS 705
 
 
 
@@ -386,10 +401,11 @@ static void ReSizeGLScene(HWND Wnd) {
 	glViewport(0, 0, Width, Height);								// Reset The Current Viewport
 	glMatrixMode(GL_PROJECTION);									// Select The Projection Matrix
 	glLoadIdentity();												// Reset The Projection Matrix																
-	gluPerspective(45.0f, 
-		(GLfloat)Width / (GLfloat)Height,							// Calculate The Aspect Ratio Of The Window
-			0.1f, 
-				100.0f);											
+	//gluPerspective(45.0f, 	2.0 *(GLfloat)Width / (GLfloat)Height ,							// Calculate The Aspect Ratio Of The Window
+	//		5.1f, 	100.0f);		
+	gluPerspective(45.0f, 5.0, 5.1f, 100.0f);
+	//glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+	//glOrtho(0.0, 0.0, 0.0, 0.0, 1, 1);
 	glMatrixMode(GL_MODELVIEW);										// Select The Modelview Matrix
 	glLoadIdentity();												// Reset The Modelview Matrix
 	ReleaseDC(Wnd, Dc);												// Release the window DC
@@ -1043,7 +1059,7 @@ INT ReadSensorFile_PTP(LPTSTR lpFile)
 
 	while (_fgetts(buffer, sizeof(buffer) / sizeof(_TCHAR), stream))
 	{
-		if (i > 11 && i < 1000)
+		if (i > 11 )
 		{
 			switch (i)
 			{
@@ -1231,7 +1247,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 		hwndButton = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
-			L"PLUS",      // Button text 
+			L"ROTATION (L)",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
 			10,         // x position 
 			10,         // y position 
@@ -1244,9 +1260,9 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 		hwndButtonMinus = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
-			L"MINUS",      // Button text 
+			L"RATATION (R)",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			110,         // x position 
+			120,         // x position 
 			10,         // y position 
 			100,        // Button width
 			50,        // Button height
@@ -1259,7 +1275,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			L"BUTTON",  // Predefined class; Unicode assumed 
 			L"LINE WIDTH",      // Button text 
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			220,         // x position 
+			270,         // x position 
 			10,         // y position 
 			100,        // Button width
 			50,        // Button height
@@ -1268,18 +1284,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
-		hwndButtonProfileDistanceMinus = CreateWindow(
-			L"BUTTON",  // Predefined class; Unicode assumed 
-			L"APPLY SCALE",      // Button text 
-			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			330,         // x position 
-			10,         // y position 
-			100,        // Button width
-			50,        // Button height
-			Wnd,     // Parent window
-			(HMENU)(int)IDC_PROFILESCALE,       // No menu.
-			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
-			NULL);      // Pointer not needed.
+		
 
 		hwndButtonProfile1Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
@@ -1466,7 +1471,21 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			 1020, 70, //x,y positin 
 			 70, 20,	//Width height
 			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_XScala, TEXT("10.0"));
+		 SetWindowText(hWndEdit_XScala, TEXT("30.0"));
+
+
+		 hwndButtonProfileDistanceMinus = CreateWindow(
+			 L"BUTTON",  // Predefined class; Unicode assumed 
+			 L"APPLY SCALE",      // Button text 
+			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			 1020,         // x position 
+			 100,         // y position 
+			 250,        // Button width
+			 50,        // Button height
+			 Wnd,     // Parent window
+			 (HMENU)(int)IDC_PROFILESCALE,       // No menu.
+			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			 NULL);      // Pointer not needed.
 
 
 		 HWND hWndLabek_Y = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
@@ -1495,7 +1514,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			 1100, 70, //x,y positin 
 			 80, 20,	//Width height
 			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_YScala, TEXT("10.0"));
+		 SetWindowText(hWndEdit_YScala, TEXT("30.0"));
 
 		 HWND hWndLabek_Z = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
@@ -1524,6 +1543,85 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			 70, 20,	//Width height
 			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
 		 SetWindowText(hWndEdit_ZScala, TEXT("1.0"));
+
+		 hWndCoord_X_MINUS = CreateWindow(
+			 L"BUTTON",  // Predefined class; Unicode assumed 
+			 L"- X",      // Button text 
+			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			 1300,         // x position 
+			 10,         // y position 
+			 50,        // Button width
+			 50,        // Button height
+			 Wnd,     // Parent window
+			 (HMENU)(int)IDC_CORRD_X_MINUS,       // No menu.
+			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			 NULL);      // Pointer not needed.
+
+		 hWndCoord_Y_MINUS = CreateWindow(
+			 L"BUTTON",  // Predefined class; Unicode assumed 
+			 L"- Y",      // Button text 
+			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			 1370,         // x position 
+			 10,         // y position 
+			 50,        // Button width
+			 50,        // Button height
+			 Wnd,     // Parent window
+			 (HMENU)(int)IDC_CORRD_Y_MINUS,       // No menu.
+			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			 NULL);      // Pointer not needed.
+
+		 hWndCoord_Z_MINUS = CreateWindow(
+			 L"BUTTON",  // Predefined class; Unicode assumed 
+			 L"- Z",      // Button text 
+			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			 1440,         // x position 
+			 10,         // y position 
+			 50,        // Button width
+			 50,        // Button height
+			 Wnd,     // Parent window
+			 (HMENU)(int)IDC_CORRD_Z_MINUS,       // No menu.
+			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			 NULL);      // Pointer not needed.
+
+		 hWndCoord_X_PLUS = CreateWindow(
+			 L"BUTTON",  // Predefined class; Unicode assumed 
+			 L"+ X",      // Button text 
+			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			 1300,         // x position 
+			 70,         // y position 
+			 50,        // Button width
+			 50,        // Button height
+			 Wnd,     // Parent window
+			 (HMENU)(int)IDC_CORRD_X_PLUS,       // No menu.
+			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			 NULL);      // Pointer not needed.
+
+		 hWndCoord_Y_PLUS = CreateWindow(
+			 L"BUTTON",  // Predefined class; Unicode assumed 
+			 L"+ Y",      // Button text 
+			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			 1370,         // x position 
+			 70,         // y position 
+			 50,        // Button width
+			 50,        // Button height
+			 Wnd,     // Parent window
+			 (HMENU)(int)IDC_CORRD_Y_PLUS,       // No menu.
+			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			 NULL);      // Pointer not needed.
+
+		 hWndCoord_Z_PLUS = CreateWindow(
+			 L"BUTTON",  // Predefined class; Unicode assumed 
+			 L"+ Z",      // Button text 
+			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			 1440,         // x position 
+			 70,         // y position 
+			 50,        // Button width
+			 50,        // Button height
+			 Wnd,     // Parent window
+			 (HMENU)(int)IDC_CORRD_Z_PLUS,       // No menu.
+			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			 NULL);      // Pointer not needed.
+
 	}
 	break;
 
@@ -1598,7 +1696,41 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		}
 		break;
 		//-------------End View Configuration-------------------------------------------
+		//-------------NULL-Point-------------------------------------------------------
+		case IDC_CORRD_X_MINUS: {
+			X = X - 10;
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+		break;
+		case IDC_CORRD_Y_MINUS: {
+			Y = Y - 10;
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+		break;
+		case IDC_CORRD_Z_MINUS: {
+			Z = Z - 10;
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+		break;
 
+
+		case IDC_CORRD_X_PLUS: {
+			X = X + 10;
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+		break;
+		case IDC_CORRD_Y_PLUS: {
+			Y = Y + 10;
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+		break;
+		case IDC_CORRD_Z_PLUS: {
+			Z = Z + 10;
+			InvalidateRect(Wnd, 0, TRUE);						// We need a redraw now so invalidate us	
+		}
+		break;
+		
+		//-------------END NULL POINT---------------------------------------------------
 
 
 		//----------- Begin Profile Configuration---------------------------------------
