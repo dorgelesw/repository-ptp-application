@@ -82,6 +82,16 @@ HWND hWndCoord_Y_PLUS;
 HWND hWndCoord_Z_PLUS;
 //HWND hWndEdit;
 
+
+HWND hWndCoord_BandWidtTitel;
+HWND hWndCoord_BandWidtValue;
+
+HWND hWndBtn_DisplayBand;
+HWND hWndBtn_DisplayPlane;
+HWND hWndBtn_DisplayLine;
+
+GLfloat BandWidth = 0.5;
+
 // Data structure of a line from ptp file.
 typedef struct
 {
@@ -169,6 +179,10 @@ BOOL DisplayUnit_Z = 0;
 
 BOOL IncreaseProfileWidth = 1;
 
+BOOL DisplayPlane = TRUE;
+BOOL DisplayProfile = TRUE;
+BOOL DisplayBand = FALSE;
+
 char s[30];
 
 int DrawBackGround(BOOL draw, GLfloat MaxLimit);
@@ -209,6 +223,9 @@ APP SPECIFIC INTERNAL CONSTANTS
 #define IDC_PROFILEDISTANCE_MINUS 54					// EDITBUTTON PROFILEDISTANCE decrese
 #define IDC_PROFILEWIDTH 55								// EDITBUTTON PROFILE WIDTH
 #define IDC_PROFILESCALE 56								// EDITBUTTON PROFILE SCALE
+#define IDC_DISPLAYBAND 57
+#define IDC_DISPLAYPLANE 58
+#define IDC_DISPLAYPROFILE 59
 
 #define IDC_PROFILE_1_DISPLAY 301							// DISPLAY PROFILE 1
 #define IDC_PROFILE_2_DISPLAY 302							// DISPLAY PROFILE 2
@@ -286,7 +303,7 @@ int OpenFileDialog(TCHAR* Name, unsigned short NameBufSize, TCHAR* String, TCHAR
 
 	InitCommonControls();											// Initialize common dialogs
 	Name[0] = 0;													// Preset name clear
-	_tcscpy_s(&FileName[0], _countof(FileName), _T("*."));			// Tranfer "*."
+	_tcscpy_s(&FileName[0], _countof(FileName), _T("_R7."));			// Tranfer "*."
 	_tcscat_s(&FileName[0], _countof(FileName), Ext);				// Create "*.xxx" extension
 	_tcscpy_s(Filter, _countof(Filter), String);					// Tranfer string
 	i = _tcslen(Filter);											// Fetch that string length in TCHAR
@@ -452,226 +469,581 @@ void DrawGLScene(GLDATABASE* db, HDC Dc) {
 
 	//Draw the profiles from list of PTP Data
 	ProfileDistance = Scala_Z;
-	glLineWidth(ProfileWidth);
-	for (int i = 0; i < numLines; i++)
-	{
-		GLfloat time = ListOfPTPData[i].Time / Scala_X;
-		GLfloat timePlus1 = ListOfPTPData[i + 1].Time / Scala_X;
-		if (timePlus1 > 0)
+
+	
+		glLineWidth(ProfileWidth);
+		for (int i = 0; i < numLines; i++)
 		{
-			if (DisplayProfil_1 && DataProfil_1)
-			{			
-				//Profil 1
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 1.0f, 0.0f);
-				glVertex3f(time, ListOfPTPData[i].P1 / Scala_Y, ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P1 / Scala_Y, ProfileDistance);
-				glEnd();
-			}
-
-			if (DisplayProfil_2 && DataProfil_2)
+			GLfloat time = ListOfPTPData[i].Time / Scala_X;
+			GLfloat timePlus1 = ListOfPTPData[i + 1].Time / Scala_X;
+			GLfloat tempP = 0.0;
+			if (timePlus1 > 0)
 			{
-				//Profi	2
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 1.0f, 0.4f);
-				glVertex3f(time, ListOfPTPData[i].P2 / Scala_Y, 2 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / Scala_Y, 2 * ProfileDistance);
-				glEnd();
-			}
+				if (DisplayPlane)
+				{
+					glBegin(GL_QUADS);
+					tempP = ListOfPTPData[i].P1 / 160;
+					glColor3f(tempP, 0.0f, 1 - tempP);
+					glVertex3f(time, ListOfPTPData[i].P1 / Scala_Y, ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P1 / Scala_Y, ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / Scala_Y, 2 * ProfileDistance);
+					glVertex3f(time, ListOfPTPData[i].P2 / Scala_Y, 2 * ProfileDistance);
+					glEnd();
 
-			if (DisplayProfil_3 && DataProfil_3)
-			{
-				//Profi	3
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 0.7f, 0.0f);
-				glVertex3f(time, ListOfPTPData[i].P3 / Scala_Y, 3 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / Scala_Y, 3 * ProfileDistance);
-				glEnd();
-			}
+					glBegin(GL_QUADS);
+					tempP = ListOfPTPData[i].P2 / 160;
+					glColor3f(tempP, 0.0f, 1 - tempP);
+					glVertex3f(time, ListOfPTPData[i].P2 / Scala_Y, 2 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / Scala_Y, 2 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / Scala_Y, 3 * ProfileDistance);
+					glVertex3f(time, ListOfPTPData[i].P3 / Scala_Y, 3 * ProfileDistance);
+					glEnd();
 
-			if (DisplayProfil_4 && DataProfil_4)
-			{
+					glBegin(GL_QUADS);
+					tempP = ListOfPTPData[i].P3 / 160;
+					glColor3f(tempP, 0.0f, 1 - tempP);
+					glVertex3f(time, ListOfPTPData[i].P3 / Scala_Y, 3 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / Scala_Y, 3 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / Scala_Y, 4 * ProfileDistance);
+					glVertex3f(time, ListOfPTPData[i].P4 / Scala_Y, 4 * ProfileDistance);
+					glEnd();
 
-				//Profi	4
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 1.0f, 0.0f);
-				glVertex3f(time, ListOfPTPData[i].P4 / Scala_Y, 4 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / Scala_Y, 4 * ProfileDistance);
-				glEnd();
-			}
+					glBegin(GL_QUADS);
+					tempP = ListOfPTPData[i].P4 / 160;
+					glColor3f(tempP, 0.0f, 1 - tempP);
+					glVertex3f(time, ListOfPTPData[i].P4 / Scala_Y, 4 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / Scala_Y, 4 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / Scala_Y, 5 * ProfileDistance);
+					glVertex3f(time, ListOfPTPData[i].P5 / Scala_Y, 5 * ProfileDistance);
+					glEnd();
 
-			if (DisplayProfil_5 && DataProfil_5)
-			{
-				//Profi	5
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 0.0f, 4.0f);
-				glVertex3f(time, ListOfPTPData[i].P5 / Scala_Y, 5 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / Scala_Y, 5 * ProfileDistance);
-				glEnd();
-			}
+					glBegin(GL_QUADS);
+					tempP = ListOfPTPData[i].P5 / 160;
+					glColor3f(tempP, 0.0f, 1 - tempP);
+					glVertex3f(time, ListOfPTPData[i].P5 / Scala_Y, 5 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / Scala_Y, 5 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / Scala_Y, 6 * ProfileDistance);
+					glVertex3f(time, ListOfPTPData[i].P6 / Scala_Y, 6 * ProfileDistance);
+					glEnd();
 
-			if (DisplayProfil_6  && DataProfil_6)
-			{
-				//Profi	6
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 0.0f, 7.0f);
-				glVertex3f(time, ListOfPTPData[i].P6 / Scala_Y, 6 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / Scala_Y, 6 * ProfileDistance);
-				glEnd();
-			}
+					glBegin(GL_QUADS);
+					tempP = ListOfPTPData[i].P6 / 160;
+					glColor3f(tempP, 0.0f, 1 - tempP);
+					glVertex3f(time, ListOfPTPData[i].P6 / Scala_Y, 6 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / Scala_Y, 6 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / Scala_Y, 7 * ProfileDistance);
+					glVertex3f(time, ListOfPTPData[i].P7 / Scala_Y, 7 * ProfileDistance);
+					glEnd();
 
-			if (DisplayProfil_7 && DataProfil_7)
-			{
-				//Profi	7
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 0.0f, 0.0f);
-				glVertex3f(time, ListOfPTPData[i].P7 / Scala_Y, 7 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / Scala_Y, 7 * ProfileDistance);
-				glEnd();
-			}
+					glBegin(GL_QUADS);
+					tempP = ListOfPTPData[i].P7 / 160;
+					glColor3f(tempP, 0.0f, 1 - tempP);
+					glVertex3f(time, ListOfPTPData[i].P7 / Scala_Y, 7 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / Scala_Y, 7 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / Scala_Y, 8 * ProfileDistance);
+					glVertex3f(time, ListOfPTPData[i].P8 / Scala_Y, 8 * ProfileDistance);
+					glEnd();
 
-			if (DisplayProfil_8 && DataProfil_8)
-			{
-				//Profi	8
-				glBegin(GL_LINES);
-				glColor3f(0.0f, 0.0f, 0.4f);
-				glVertex3f(time, ListOfPTPData[i].P8 / Scala_Y, 8 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / Scala_Y, 8 * ProfileDistance);
-				glEnd();
+					glBegin(GL_QUADS);
+					tempP = ListOfPTPData[i].P8 / 160;
+					glColor3f(tempP, 0.0f, 1 - tempP);
+					glVertex3f(time, ListOfPTPData[i].P8 / Scala_Y, 8 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / Scala_Y, 8 * ProfileDistance);
+					glVertex3f(timePlus1, ListOfPTPData[i + 1].P9 / Scala_Y, 9 * ProfileDistance);
+					glVertex3f(time, ListOfPTPData[i].P9 / Scala_Y, 9 * ProfileDistance);
+					glEnd();
+				}
+				
+				if(DisplayProfile)
+				{
+					if (DisplayProfil_1 && DataProfil_1)
+					{
+						//Profil 1
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 1.0f, 0.0f);
+						glVertex3f(time, ListOfPTPData[i].P1 / Scala_Y, ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P1 / Scala_Y, ProfileDistance);
+						glEnd();
 
-			}
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P1 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
 
-			if (DisplayProfil_9 && DataProfil_9)
-			{
-				//Profi	9
-				glBegin(GL_LINES);
-				glColor3f(0.0f, 0.0f, 0.7f);
-				glVertex3f(time, ListOfPTPData[i].P9 / Scala_Y, 9 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P9 / Scala_Y, 9 * ProfileDistance);
-				glEnd();
-			}
+							glVertex3f(time, ListOfPTPData[i].P1 / Scala_Y, ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P1 / Scala_Y, ProfileDistance + BandWidth);
 
-			if (DisplayProfil_10 && DataProfil_10)
-			{
-				//Profi	10
-				glBegin(GL_LINES);
-				glColor3f(0.0f, 0.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P10 / Scala_Y, 10 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P10 / Scala_Y, 10 * ProfileDistance);
-				glEnd();
-			}
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P1 / Scala_Y, ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P1 / Scala_Y, ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
 
-			if (DisplayProfil_11 && DataProfil_11)
-			{
-				//Profi	11
-				glBegin(GL_LINES);
-				glColor3f(0.0f, 0.4f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P11 / Scala_Y, 11 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P11 / Scala_Y, 11 * ProfileDistance);
-				glEnd();
-			}
+					if (DisplayProfil_2 && DataProfil_2)
+					{
+						//Profi	2
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 1.0f, 0.4f);
+						glVertex3f(time, ListOfPTPData[i].P2 / Scala_Y, 2 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / Scala_Y, 2 * ProfileDistance);
+						glEnd();
 
-			if (DisplayProfil_12 && DataProfil_12)
-			{
-				//Profi	12
-				glBegin(GL_LINES);
-				glColor3f(0.0f, 0.7f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P12 / Scala_Y, 12 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P12 / Scala_Y, 12 * ProfileDistance);
-				glEnd();
-			}
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P2 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
 
-			if (DisplayProfil_13 && DataProfil_13)
-			{
-				//Profi	13
-				glBegin(GL_LINES);
-				glColor3f(0.4f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P13 / Scala_Y, 13 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P13 / Scala_Y, 13 * ProfileDistance);
-				glEnd();
-			}
+							glVertex3f(time, ListOfPTPData[i].P2 / Scala_Y, 2 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P2 / Scala_Y, 2 * ProfileDistance + BandWidth);
 
-			if (DisplayProfil_14 && DataProfil_14)
-			{
-				//Profi	14
-				glBegin(GL_LINES);
-				glColor3f(0.7f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P14 / Scala_Y, 14 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P14 / Scala_Y, 14 * ProfileDistance);
-				glEnd();
-			}
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / Scala_Y, 2 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P2 / Scala_Y, 2 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
 
-			if (DisplayProfil_15 && DataProfil_15)
-			{
-				//Profi	15
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P15 / Scala_Y, 15 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P15 / Scala_Y, 15 * ProfileDistance);
-				glEnd();
-			}
+					if (DisplayProfil_3 && DataProfil_3)
+					{
+						//Profi	3
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 0.7f, 0.0f);
+						glVertex3f(time, ListOfPTPData[i].P3 / Scala_Y, 3 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / Scala_Y, 3 * ProfileDistance);
+						glEnd();
 
-			if (DisplayProfil_16 && DataProfil_16)
-			{
-				//Profi	16
-				glBegin(GL_LINES);
-				glColor3f(0.4f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P16 / Scala_Y, 16 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P16 / Scala_Y, 16 * ProfileDistance);
-				glEnd();
-			}
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P3 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P3 / Scala_Y, 3 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P3 / Scala_Y, 3 * ProfileDistance + BandWidth);
 
-			if (DisplayProfil_17 && DataProfil_17)
-			{
-				//Profi	17
-				glBegin(GL_LINES);
-				glColor3f(0.7f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P17 / Scala_Y, 17 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P17 / Scala_Y, 17 * ProfileDistance);
-				glEnd();
-			}
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / Scala_Y, 3 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P3 / Scala_Y, 3 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
 
-			if (DisplayProfil_18 && DataProfil_18)
-			{
-				//Profi	18
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P18 / Scala_Y, 18 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P18 / Scala_Y, 18 * ProfileDistance);
-				glEnd();
-			}
+					if (DisplayProfil_4 && DataProfil_4)
+					{
 
-			if (DisplayProfil_19 && DataProfil_19)
-			{
-				//Profi	19
-				glBegin(GL_LINES);
-				glColor3f(0.7f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P19 / Scala_Y, 19 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P19 / Scala_Y, 19 * ProfileDistance);
-				glEnd();
-			}
+						//Profi	4
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 1.0f, 0.0f);
+						glVertex3f(time, ListOfPTPData[i].P4 / Scala_Y, 4 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / Scala_Y, 4 * ProfileDistance);
+						glEnd();
 
-			if (DisplayProfil_20 && DataProfil_20)
-			{
-				//Profi	20
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P20 / Scala_Y, 20 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P20 / Scala_Y, 20 * ProfileDistance);
-				glEnd();
-			}
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P4 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P4 / Scala_Y, 4 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P4 / Scala_Y, 4 * ProfileDistance + BandWidth);
 
-			if (DisplayProfil_21 && DataProfil_21)
-			{
-				//Profi	21
-				glBegin(GL_LINES);
-				glColor3f(1.0f, 1.0f, 1.0f);
-				glVertex3f(time, ListOfPTPData[i].P21 / Scala_Y, 21 * ProfileDistance);
-				glVertex3f(timePlus1, ListOfPTPData[i + 1].P21 / Scala_Y, 21 * ProfileDistance);
-				glEnd();
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / Scala_Y, 4 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P4 / Scala_Y, 4 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_5 && DataProfil_5)
+					{
+						//Profi	5
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 0.0f, 4.0f);
+						glVertex3f(time, ListOfPTPData[i].P5 / Scala_Y, 5 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / Scala_Y, 5 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P5 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P5 / Scala_Y, 5 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P5 / Scala_Y, 5 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / Scala_Y, 5 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P5 / Scala_Y, 5 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_6  && DataProfil_6)
+					{
+						//Profi	6
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 0.0f, 7.0f);
+						glVertex3f(time, ListOfPTPData[i].P6 / Scala_Y, 6 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / Scala_Y, 6 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P6 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P6 / Scala_Y, 6 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P6 / Scala_Y, 6 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / Scala_Y, 6 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P6 / Scala_Y, 6 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_7 && DataProfil_7)
+					{
+						//Profi	7
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 0.0f, 0.0f);
+						glVertex3f(time, ListOfPTPData[i].P7 / Scala_Y, 7 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / Scala_Y, 7 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P7 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P7 / Scala_Y, 7 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P7 / Scala_Y, 7 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / Scala_Y, 7 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P7 / Scala_Y, 7 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_8 && DataProfil_8)
+					{
+						//Profi	8
+						glBegin(GL_LINES);
+						glColor3f(0.0f, 0.0f, 0.4f);
+						glVertex3f(time, ListOfPTPData[i].P8 / Scala_Y, 8 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / Scala_Y, 8 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P8 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P8 / Scala_Y, 8 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P8 / Scala_Y, 8 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / Scala_Y, 8 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P8 / Scala_Y, 8 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_9 && DataProfil_9)
+					{
+						//Profi	9
+						glBegin(GL_LINES);
+						glColor3f(0.0f, 0.0f, 0.7f);
+						glVertex3f(time, ListOfPTPData[i].P9 / Scala_Y, 9 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P9 / Scala_Y, 9 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P9 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P9 / Scala_Y, 9 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P9 / Scala_Y, 9 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P9 / Scala_Y, 9 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P9 / Scala_Y, 9 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_10 && DataProfil_10)
+					{
+						//Profi	10
+						glBegin(GL_LINES);
+						glColor3f(0.0f, 0.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P10 / Scala_Y, 10 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P10 / Scala_Y, 10 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P10 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P10 / Scala_Y, 10 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P10 / Scala_Y, 10 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P10 / Scala_Y, 10 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P10 / Scala_Y, 10 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_11 && DataProfil_11)
+					{
+						//Profi	11
+						glBegin(GL_LINES);
+						glColor3f(0.0f, 0.4f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P11 / Scala_Y, 11 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P11 / Scala_Y, 11 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P11 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P11 / Scala_Y, 11 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P11 / Scala_Y, 11 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P11 / Scala_Y, 11 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P11 / Scala_Y, 11 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_12 && DataProfil_12)
+					{
+						//Profi	12
+						glBegin(GL_LINES);
+						glColor3f(0.0f, 0.7f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P12 / Scala_Y, 12 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P12 / Scala_Y, 12 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P12 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P12 / Scala_Y, 12 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P12 / Scala_Y, 12 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P12 / Scala_Y, 12 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P12 / Scala_Y, 12 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_13 && DataProfil_13)
+					{
+						//Profi	13
+						glBegin(GL_LINES);
+						glColor3f(0.4f, 1.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P13 / Scala_Y, 13 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P13 / Scala_Y, 13 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P13 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P13 / Scala_Y, 13 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P13 / Scala_Y, 13 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P13 / Scala_Y, 13 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P13 / Scala_Y, 13 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_14 && DataProfil_14)
+					{
+						//Profi	14
+						glBegin(GL_LINES);
+						glColor3f(0.7f, 1.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P14 / Scala_Y, 14 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P14 / Scala_Y, 14 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P14 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P14 / Scala_Y, 14 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P14 / Scala_Y, 14 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P14 / Scala_Y, 14 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P14 / Scala_Y, 14 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_15 && DataProfil_15)
+					{
+						//Profi	15
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 1.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P15 / Scala_Y, 15 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P15 / Scala_Y, 15 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P15 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P15 / Scala_Y, 15 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P15 / Scala_Y, 15 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P15 / Scala_Y, 15 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P15 / Scala_Y, 15 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_16 && DataProfil_16)
+					{
+						//Profi	16
+						glBegin(GL_LINES);
+						glColor3f(0.4f, 1.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P16 / Scala_Y, 16 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P16 / Scala_Y, 16 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P16 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P16 / Scala_Y, 16 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P16 / Scala_Y, 16 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P16 / Scala_Y, 16 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P16 / Scala_Y, 16 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_17 && DataProfil_17)
+					{
+						//Profi	17
+						glBegin(GL_LINES);
+						glColor3f(0.7f, 1.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P17 / Scala_Y, 17 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P17 / Scala_Y, 17 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P17 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P17 / Scala_Y, 17 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P17 / Scala_Y, 17 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P17 / Scala_Y, 17 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P17 / Scala_Y, 17 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_18 && DataProfil_18)
+					{
+						//Profi	18
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 1.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P18 / Scala_Y, 18 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P18 / Scala_Y, 18 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P18 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P18 / Scala_Y, 18 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P18 / Scala_Y, 18 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P18 / Scala_Y, 18 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P18 / Scala_Y, 18 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_19 && DataProfil_19)
+					{
+						//Profi	19
+						glBegin(GL_LINES);
+						glColor3f(0.7f, 1.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P19 / Scala_Y, 19 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P19 / Scala_Y, 19 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P19 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P19 / Scala_Y, 19 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P19 / Scala_Y, 19 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P19 / Scala_Y, 19 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P19 / Scala_Y, 19 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_20 && DataProfil_20)
+					{
+						//Profi	20
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 1.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P20 / Scala_Y, 20 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P20 / Scala_Y, 20 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P20 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P20 / Scala_Y, 20 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P20 / Scala_Y, 20 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P20 / Scala_Y, 20 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P20 / Scala_Y, 20 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+
+					if (DisplayProfil_21 && DataProfil_21)
+					{
+						//Profi	21
+						glBegin(GL_LINES);
+						glColor3f(1.0f, 1.0f, 1.0f);
+						glVertex3f(time, ListOfPTPData[i].P21 / Scala_Y, 21 * ProfileDistance);
+						glVertex3f(timePlus1, ListOfPTPData[i + 1].P21 / Scala_Y, 21 * ProfileDistance);
+						glEnd();
+
+						if (DisplayBand)
+						{
+							glBegin(GL_QUADS);
+							tempP = ListOfPTPData[i].P21 / 255;
+							glColor3f(tempP, 0.0f, 1 - tempP);
+							glVertex3f(time, ListOfPTPData[i].P21 / Scala_Y, 21 * ProfileDistance - BandWidth);
+							glVertex3f(time, ListOfPTPData[i].P21 / Scala_Y, 21 * ProfileDistance + BandWidth);
+
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P21 / Scala_Y, 21 * ProfileDistance + BandWidth);
+							glVertex3f(timePlus1, ListOfPTPData[i + 1].P21 / Scala_Y, 21 * ProfileDistance - BandWidth);
+							glEnd();
+						}
+					}
+				}
 			}
 		}
-	}
 	glPopMatrix(); 													// Don't forget to pop the Matrix
 }
 
@@ -758,8 +1130,8 @@ void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	{
 		glLineWidth(1.0);
 		glBegin(GL_LINES);
-		glVertex3f(u, -0.15, 0.0);
-		glVertex3f(u, 0.15, 0.0);
+		glVertex3f(u, (GLfloat)-0.15, 0.0);
+		glVertex3f(u, (GLfloat)0.15, 0.0);
 		glEnd();
 	}
 	if (DisplayUnit_X)
@@ -768,8 +1140,8 @@ void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 		{
 			glLineWidth(2.0);
 			glBegin(GL_LINES);
-			glVertex3f(u, -0.35, 0.0);
-			glVertex3f(u, 0.35, 0.0);
+			glVertex3f(u, (GLfloat)-0.35, 0.0);
+			glVertex3f(u, (GLfloat)0.35, 0.0);
 			glEnd();
 		}
 	}
@@ -779,7 +1151,7 @@ void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	{
 		glLineWidth(1.0);
 		glBegin(GL_LINES);
-		glVertex3f(u, -0.15, 0.0);
+		glVertex3f(u, (GLfloat)-0.15, 0.0);
 		glVertex3f(u, 0.15, 0.0);
 		glEnd();
 	}
@@ -789,8 +1161,8 @@ void drawAxis_X(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 		{
 			glLineWidth(2.0);
 			glBegin(GL_LINES);
-			glVertex3f(u, -0.35, 0.0);
-			glVertex3f(u, 0.35, 0.0);
+			glVertex3f(u, (GLfloat)-0.35, 0.0);
+			glVertex3f(u, (GLfloat)0.35, 0.0);
 			glEnd();
 		}
 	}
@@ -819,8 +1191,8 @@ void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	{
 		glLineWidth(1.0);
 		glBegin(GL_LINES);
-		glVertex3f(-0.15, u, 0.0);
-		glVertex3f(0.15, u, 0.0);
+		glVertex3f((GLfloat)-0.15, u, 0.0);
+		glVertex3f((GLfloat)0.15, u, 0.0);
 		glEnd();
 	}
 	if (DisplayUnit_Y)
@@ -829,8 +1201,8 @@ void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 		{
 			glLineWidth(2.0);
 			glBegin(GL_LINES);
-			glVertex3f(-0.35, u, 0.0);
-			glVertex3f(0.35, u, 0.0);
+			glVertex3f((GLfloat)-0.35, u, 0.0);
+			glVertex3f((GLfloat)0.35, u, 0.0);
 			glEnd();
 		}
 	}
@@ -840,8 +1212,8 @@ void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	{
 		glLineWidth(1.0);
 		glBegin(GL_LINES);
-		glVertex3f(-0.15, u, 0.0);
-		glVertex3f(0.15, u, 0.0);
+		glVertex3f((GLfloat)-0.15, u, 0.0);
+		glVertex3f((GLfloat)0.15, u, 0.0);
 		glEnd();
 	}
 	if (DisplayUnit_Y)
@@ -850,8 +1222,8 @@ void drawAxis_Y(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 		{
 			glLineWidth(2.0);
 			glBegin(GL_LINES);
-			glVertex3f(-0.35, u, 0.0);
-			glVertex3f(0.35, u, 0.0);
+			glVertex3f((GLfloat)-0.35, u, 0.0);
+			glVertex3f((GLfloat)0.35, u, 0.0);
 			glEnd();
 		}
 	}
@@ -881,8 +1253,8 @@ void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	{
 		glLineWidth(1.0);
 		glBegin(GL_LINES);
-		glVertex3f(0.0, -0.15, u);
-		glVertex3f(0.0, 0.15, u);
+		glVertex3f(0.0, (GLfloat)-0.15, u);
+		glVertex3f(0.0, (GLfloat)0.15, u);
 		glEnd();
 	}
 	if (DisplayUnit_Z)
@@ -891,8 +1263,8 @@ void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 		{
 			glLineWidth(2.0);
 			glBegin(GL_LINES);
-			glVertex3f(0.0, -0.35, u);
-			glVertex3f(0.0, 0.35, u);
+			glVertex3f(0.0, (GLfloat)-0.35, u);
+			glVertex3f(0.0, (GLfloat)0.35, u);
 			glEnd();
 		}
 	}
@@ -902,8 +1274,8 @@ void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 	{
 		glLineWidth(1.0);
 		glBegin(GL_LINES);
-		glVertex3f(0.0, -0.15, u);
-		glVertex3f(0.0, 0.15, u);
+		glVertex3f(0.0, (GLfloat)-0.15, u);
+		glVertex3f(0.0, (GLfloat)0.15, u);
 		glEnd();
 	}
 	if (DisplayUnit_Z)
@@ -912,8 +1284,8 @@ void drawAxis_Z(GLfloat minLimit, GLfloat maxLimit, GLfloat LineWidth, GLfloat u
 		{
 			glLineWidth(2.0);
 			glBegin(GL_LINES);
-			glVertex3f(0.0, -0.35, u);
-			glVertex3f(0.0, 0.35, u);
+			glVertex3f(0.0,(GLfloat)-0.35, u);
+			glVertex3f(0.0, (GLfloat)0.35, u);
 			glEnd();
 		}
 	}
@@ -945,51 +1317,60 @@ void ReadCoordinates()
 	char zmax_buffer[65];
 	char zScala_buffer[65];
 
+
+	char BandWith_buffer[65];
+
 	int xminlen = GetWindowTextLength(hWndEdit_XMin);
 	GetWindowTextA(hWndEdit_XMin, xmin_buffer, xminlen);
-	float xminwert= atof(xmin_buffer);
+	float xminwert= (GLfloat)atof(xmin_buffer);
 	minLimit_X = (GLfloat)xminwert;
 
 	int xmaxlen = GetWindowTextLength(hWndEdit_XMax);
 	GetWindowTextA(hWndEdit_XMax, xmax_buffer, xmaxlen);
-	float xmaxwert = atof(xmax_buffer);
+	float xmaxwert = (GLfloat)atof(xmax_buffer);
 	maxLimit_X = (GLfloat)xmaxwert;
 
-	int xScalaLen = GetWindowTextLength(hWndEdit_XScala);	
+	int xScalaLen = GetWindowTextLength(hWndEdit_XScala);
 	GetWindowTextA(hWndEdit_XScala, xScala_buffer, xScalaLen);
-	float xscalawert = atof(xScala_buffer);
+	float xscalawert = (GLfloat)atof(xScala_buffer);
 	Scala_X = (GLfloat)xscalawert;
 
 	int yminlen = GetWindowTextLength(hWndEdit_YMin);
 	GetWindowTextA(hWndEdit_YMin, ymin_buffer, yminlen);
-	float yminwert = atof(ymin_buffer);
+	float yminwert = (GLfloat)atof(ymin_buffer);
 	minLimit_Y = (GLfloat)yminwert;
 
 	int ymaxlen = GetWindowTextLength(hWndEdit_YMax);
 	GetWindowTextA(hWndEdit_YMax, ymax_buffer, ymaxlen);
-	float ymaxwert = atof(ymax_buffer);
+	float ymaxwert = (GLfloat)atof(ymax_buffer);
 	maxLimit_Y = (GLfloat)ymaxwert;
 
 	int yScalaLen = GetWindowTextLength(hWndEdit_YScala);
 	GetWindowTextA(hWndEdit_YScala, yScala_buffer, yScalaLen);
-	float yscalawert = atof(yScala_buffer);
+	float yscalawert = (GLfloat)atof(yScala_buffer);
 	Scala_Y = (GLfloat)yscalawert;
 
 
 	int zminlen = GetWindowTextLength(hWndEdit_ZMin);
 	GetWindowTextA(hWndEdit_ZMin, zmin_buffer, zminlen);
-	float zminwert = atof(zmin_buffer);
+	float zminwert = (GLfloat)atof(zmin_buffer);
 	minLimit_Z = (GLfloat)zminwert;
 
 	int zmaxlen = GetWindowTextLength(hWndEdit_ZMax);
 	GetWindowTextA(hWndEdit_ZMax, zmax_buffer, zmaxlen);
-	float zmaxwert = atof(zmax_buffer);
+	float zmaxwert = (GLfloat)atof(zmax_buffer);
 	maxLimit_Z = (GLfloat)zmaxwert;
 
 	int zScalaLen = GetWindowTextLength(hWndEdit_ZScala);
 	GetWindowTextA(hWndEdit_ZScala, zScala_buffer, zScalaLen);
-	float zscalawert = atof(zScala_buffer);
+	float zscalawert = (GLfloat)atof(zScala_buffer);
 	Scala_Z = (GLfloat)zscalawert;
+
+	int Bandwidth = GetWindowTextLength(hWndCoord_BandWidtValue);
+	GetWindowTextA(hWndCoord_BandWidtValue, BandWith_buffer, Bandwidth);
+	float BandWidthwert = atof(BandWith_buffer);
+	BandWidth = (GLfloat)BandWidthwert;
+	
 }
 
 
@@ -1037,9 +1418,6 @@ int DrawBackGround(BOOL draw, GLfloat MaxLimit)
 	}
   return 0;	
 }
-
-
-
 
 INT ReadSensorFile_PTP(LPTSTR lpFile)
 {
@@ -1196,25 +1574,25 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 
 	switch (Msg) {
 	case WM_CREATE: {											// WM_CREATE MESSAGE
-		HWND hwndButton;	  
-		HWND hwndButtonMinus;	  
-		HWND hwndButtonProfileDistancePlus;	  
-		HWND hwndButtonProfileDistanceMinus; 	  
-		HWND hwndButtonProfile1Display; 	  
-		HWND hwndButtonProfile2Display; 
+		HWND hwndButton;
+		HWND hwndButtonMinus;
+		HWND hwndButtonProfileDistancePlus;
+		HWND hwndButtonProfileDistanceMinus;
+		HWND hwndButtonProfile1Display;
+		HWND hwndButtonProfile2Display;
 		HWND hwndButtonProfile3Display;
 		HWND hwndButtonProfile4Display;
 		HWND hwndButtonProfile5Display;
 		HWND hwndButtonProfile6Display;
 		HWND hwndButtonProfile7Display;
 		HWND hwndButtonProfile8Display;
-		HWND hwndButtonProfile9Display; 
-		HWND hwndButtonBackGround; 
-		
-																//  First manually build a menu for a window
+		HWND hwndButtonProfile9Display;
+		HWND hwndButtonBackGround;
+
+		//  First manually build a menu for a window
 		HMENU SubMenu, Menu;
 		Menu = CreateMenu();									// Create a menu and populate it
-		
+
 		//create menu File
 		SubMenu = CreatePopupMenu();
 		AppendMenu(SubMenu, MF_STRING, IDC_PTPLOAD, _T("&Load PTP"));
@@ -1228,7 +1606,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		AppendMenu(SubMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(SubMenu, MF_STRING, IDC_EXIT, _T("&Background"));
 		AppendMenu(Menu, MF_POPUP, (UINT_PTR)SubMenu, _T("&Setup"));*/
-	
+
 
 		SetMenu(Wnd, Menu);									// Set the menu to window
 
@@ -1254,7 +1632,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			100,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
-  		(HMENU)(int)IDC_BUTTONPLUS,
+			(HMENU)(int)IDC_BUTTONPLUS,
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
@@ -1267,7 +1645,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			100,        // Button width
 			50,        // Button height
 			Wnd,     // Parent window
- 		 (HMENU)(int)IDC_BUTTONMINUS,
+			(HMENU)(int)IDC_BUTTONMINUS,
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
@@ -1284,7 +1662,7 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
 			NULL);      // Pointer not needed.
 
-		
+
 
 		hwndButtonProfile1Display = CreateWindow(
 			L"BUTTON",  // Predefined class; Unicode assumed 
@@ -1420,28 +1798,28 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_RIGHT | WS_BORDER,
 			910, 10, //x,y positin 
 			90, 20,	//Width height
-			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+			Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
 		SetWindowText(hWndTitel, TEXT("Description:"));
 
 		HWND hWndMinTxt = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_RIGHT | WS_BORDER,
 			910, 30, //x,y positin 
 			90, 20,	//Width height
-			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+			Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
 		SetWindowText(hWndMinTxt, TEXT("Min:"));
 
 		HWND hWndMaxTxt = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_RIGHT,
 			910, 50, //x,y positin 
 			90, 20,	//Width height
-			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+			Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
 		SetWindowText(hWndMaxTxt, TEXT("Max:"));
 
 		HWND hWndScalaTxt = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_RIGHT,
 			910, 70, //x,y positin 
 			90, 20,	//Width height
-			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+			Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
 		SetWindowText(hWndScalaTxt, TEXT("Scala:"));
 
 
@@ -1449,179 +1827,228 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_CENTER,
 			1020, 10, //x,y positin 
 			70, 20,	//Width height
-			Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
+			Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
 		SetWindowText(hWndLabek_X, TEXT("X: Time(s)"));
 
-		  hWndEdit_XMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+		hWndEdit_XMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
 			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT ,
-			 1020, 30, //x,y positin 
-			 70, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_XMin, TEXT("0.0"));
+			1020, 30, //x,y positin 
+			70, 20,	//Width height
+			 Wnd,(HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndEdit_XMin, TEXT("0.0"));
 
-		 hWndEdit_XMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
-			 1020, 50, //x,y positin 
-			 70, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_XMax, TEXT("6000.0"));
+		hWndEdit_XMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			1020, 50, //x,y positin 
+			70, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndEdit_XMax, TEXT("6000.0"));
 
-		 hWndEdit_XScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
-			 1020, 70, //x,y positin 
-			 70, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_XScala, TEXT("30.0"));
-
-
-		 hwndButtonProfileDistanceMinus = CreateWindow(
-			 L"BUTTON",  // Predefined class; Unicode assumed 
-			 L"APPLY SCALE",      // Button text 
-			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			 1020,         // x position 
-			 100,         // y position 
-			 250,        // Button width
-			 50,        // Button height
-			 Wnd,     // Parent window
-			 (HMENU)(int)IDC_PROFILESCALE,       // No menu.
-			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
-			 NULL);      // Pointer not needed.
+		hWndEdit_XScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			1020, 70, //x,y positin 
+			70, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndEdit_XScala, TEXT("30.0"));
 
 
-		 HWND hWndLabek_Y = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_CENTER,
-			 1100, 10, //x,y positin 
-			 80, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndLabek_Y, TEXT("Y: Temp(°C)"));
+		hwndButtonProfileDistanceMinus = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"APPLY SCALE",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			1020,         // x position 
+			100,         // y position 
+			250,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_PROFILESCALE,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
 
-		 hWndEdit_YMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
-			 1100, 30, //x,y positin 
-			 80, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_YMin, TEXT("-200.0"));
 
-		 hWndEdit_YMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
-			 1100, 50, //x,y positin 
-			 80, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_YMax, TEXT("1650.0"));
+		HWND hWndLabek_Y = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_CENTER,
+			1100, 10, //x,y positin 
+			80, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndLabek_Y, TEXT("Y: Temp(°C)"));
 
-		 hWndEdit_YScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
-			 1100, 70, //x,y positin 
-			 80, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_YScala, TEXT("30.0"));
+		hWndEdit_YMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			1100, 30, //x,y positin 
+			80, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndEdit_YMin, TEXT("-200.0"));
 
-		 HWND hWndLabek_Z = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
-			 1200, 10, //x,y positin 
-			 70, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndLabek_Z, TEXT("Z: Profile"));
+		hWndEdit_YMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			1100, 50, //x,y positin 
+			80, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndEdit_YMax, TEXT("1650.0"));
 
-		 hWndEdit_ZMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
-			 1200, 30, //x,y positin 
-			 70, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_ZMin, TEXT("0.0"));
+		hWndEdit_YScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			1100, 70, //x,y positin 
+			80, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndEdit_YScala, TEXT("30.0"));
 
-		 hWndEdit_ZMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
-			 1200, 50, //x,y positin 
-			 70, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_ZMax, TEXT("20.0"));
+		HWND hWndLabek_Z = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			1200, 10, //x,y positin 
+			70, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndLabek_Z, TEXT("Z: Profile"));
 
-		 hWndEdit_ZScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-			 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
-			 1200, 70, //x,y positin 
-			 70, 20,	//Width height
-			 Wnd, IDC_PROFILEDISTANCE, NULL, NULL);
-		 SetWindowText(hWndEdit_ZScala, TEXT("1.0"));
+		hWndEdit_ZMin = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			1200, 30, //x,y positin 
+			70, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndEdit_ZMin, TEXT("0.0"));
 
-		 hWndCoord_X_MINUS = CreateWindow(
-			 L"BUTTON",  // Predefined class; Unicode assumed 
-			 L"- X",      // Button text 
-			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			 1300,         // x position 
-			 10,         // y position 
-			 50,        // Button width
-			 50,        // Button height
-			 Wnd,     // Parent window
-			 (HMENU)(int)IDC_CORRD_X_MINUS,       // No menu.
-			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
-			 NULL);      // Pointer not needed.
+		hWndEdit_ZMax = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			1200, 50, //x,y positin 
+			70, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndEdit_ZMax, TEXT("20.0"));
 
-		 hWndCoord_Y_MINUS = CreateWindow(
-			 L"BUTTON",  // Predefined class; Unicode assumed 
-			 L"- Y",      // Button text 
-			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			 1370,         // x position 
-			 10,         // y position 
-			 50,        // Button width
-			 50,        // Button height
-			 Wnd,     // Parent window
-			 (HMENU)(int)IDC_CORRD_Y_MINUS,       // No menu.
-			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
-			 NULL);      // Pointer not needed.
+		hWndEdit_ZScala = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			1200, 70, //x,y positin 
+			70, 20,	//Width height
+			 Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		SetWindowText(hWndEdit_ZScala, TEXT("1.0"));
 
-		 hWndCoord_Z_MINUS = CreateWindow(
-			 L"BUTTON",  // Predefined class; Unicode assumed 
-			 L"- Z",      // Button text 
-			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			 1440,         // x position 
-			 10,         // y position 
-			 50,        // Button width
-			 50,        // Button height
-			 Wnd,     // Parent window
-			 (HMENU)(int)IDC_CORRD_Z_MINUS,       // No menu.
-			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
-			 NULL);      // Pointer not needed.
+		hWndCoord_X_MINUS = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"- X",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			1300,         // x position 
+			10,         // y position 
+			50,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_CORRD_X_MINUS,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
 
-		 hWndCoord_X_PLUS = CreateWindow(
-			 L"BUTTON",  // Predefined class; Unicode assumed 
-			 L"+ X",      // Button text 
-			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			 1300,         // x position 
-			 70,         // y position 
-			 50,        // Button width
-			 50,        // Button height
-			 Wnd,     // Parent window
-			 (HMENU)(int)IDC_CORRD_X_PLUS,       // No menu.
-			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
-			 NULL);      // Pointer not needed.
+		hWndCoord_Y_MINUS = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"- Y",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			1370,         // x position 
+			10,         // y position 
+			50,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_CORRD_Y_MINUS,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
 
-		 hWndCoord_Y_PLUS = CreateWindow(
-			 L"BUTTON",  // Predefined class; Unicode assumed 
-			 L"+ Y",      // Button text 
-			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			 1370,         // x position 
-			 70,         // y position 
-			 50,        // Button width
-			 50,        // Button height
-			 Wnd,     // Parent window
-			 (HMENU)(int)IDC_CORRD_Y_PLUS,       // No menu.
-			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
-			 NULL);      // Pointer not needed.
+		hWndCoord_Z_MINUS = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"- Z",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			1440,         // x position 
+			10,         // y position 
+			50,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_CORRD_Z_MINUS,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
 
-		 hWndCoord_Z_PLUS = CreateWindow(
-			 L"BUTTON",  // Predefined class; Unicode assumed 
-			 L"+ Z",      // Button text 
-			 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-			 1440,         // x position 
-			 70,         // y position 
-			 50,        // Button width
-			 50,        // Button height
-			 Wnd,     // Parent window
-			 (HMENU)(int)IDC_CORRD_Z_PLUS,       // No menu.
-			 (HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
-			 NULL);      // Pointer not needed.
+		hWndCoord_X_PLUS = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"+ X",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			1300,         // x position 
+			70,         // y position 
+			50,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_CORRD_X_PLUS,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
 
+		hWndCoord_Y_PLUS = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"+ Y",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			1370,         // x position 
+			70,         // y position 
+			50,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_CORRD_Y_PLUS,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+
+		hWndCoord_Z_PLUS = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"+ Z",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			1440,         // x position 
+			70,         // y position 
+			50,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_CORRD_Z_PLUS,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+
+		hWndCoord_BandWidtTitel = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("Band Width"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			900, 100, //x,y positin 
+			100, 20,	//Width height
+			Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+		// SetWindowText(hWndEdit_XScala, TEXT("Band Width"));
+
+		hWndCoord_BandWidtValue = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("1.0"),
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT,
+			900, 120, //x,y positin 
+			100, 20,	//Width height
+			Wnd, (HMENU)(int)IDC_PROFILEDISTANCE, NULL, NULL);
+
+		hWndBtn_DisplayBand = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"Display Band",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			900,         // x position 
+			160,         // y position 
+			100,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_DISPLAYBAND,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+		hWndBtn_DisplayPlane = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"Display Plane",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			1010,         // x position 
+			160,         // y position 
+			100,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_DISPLAYPLANE,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
+		hWndBtn_DisplayLine = CreateWindow(
+			L"BUTTON",  // Predefined class; Unicode assumed 
+			L"Display Profile",      // Button text 
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+			1120,         // x position 
+			160,         // y position 
+			100,        // Button width
+			50,        // Button height
+			Wnd,     // Parent window
+			(HMENU)(int)IDC_DISPLAYPROFILE,       // No menu.
+			(HINSTANCE)GetWindowLong(Wnd, GWL_HINSTANCE),
+			NULL);      // Pointer not needed.
 	}
 	break;
 
@@ -1736,6 +2163,31 @@ LRESULT CALLBACK OpenGLDemoHandler(HWND Wnd, UINT Msg, WPARAM wParam, LPARAM lPa
 		//----------- Begin Profile Configuration---------------------------------------
 		case IDC_PROFILEDISTANCE: {
 			 	
+		}
+		break;
+		case IDC_DISPLAYBAND: {
+			if (DisplayBand)
+				DisplayBand = FALSE;
+			else
+				DisplayBand = TRUE;
+			InvalidateRect(Wnd, 0, TRUE);
+		}
+		break;
+		case IDC_DISPLAYPLANE: {
+			if (DisplayPlane)
+				DisplayPlane = FALSE;
+			else
+				DisplayPlane = TRUE;
+			InvalidateRect(Wnd, 0, TRUE);
+		}
+		break;
+		case IDC_DISPLAYPROFILE: {
+			if (DisplayProfile)
+				DisplayProfile = FALSE;
+			else
+				DisplayProfile = TRUE;
+
+			InvalidateRect(Wnd, 0, TRUE);
 		}
 		break;
 
